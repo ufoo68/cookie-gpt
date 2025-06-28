@@ -3,15 +3,16 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Upload, Loader2, Menu, X, Zap } from "lucide-react"
+import { Upload, Loader2, Menu, X, Zap, Send, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useIsMobile } from "@/hooks/use-mobile"
 import SVGViewer from "./components/svg-viewer"
 import STLDownload from "./components/stl-download"
 
 interface Message {
   id: number
-  type: "text" | "image" | "svg-stl"
+  type: "text" | "image" | "svg" | "stl" | "user-input"
   content: string
   svgContent?: string
   stlUrl?: string
@@ -21,6 +22,7 @@ interface Message {
   time: string
   isMe: boolean
   isLoading?: boolean
+  stage?: "svg_generated" | "svg_modified" | "stl_generated"
 }
 
 export default function Cookie3DChat() {
@@ -29,13 +31,17 @@ export default function Cookie3DChat() {
       id: 1,
       type: "text",
       content:
-        "こんにちは！🍪✨\n\n新しいワークフローでクッキー型を作成します：\n1️⃣ GPT-4oがイラストからSVG形状を生成\n2️⃣ MCPサービスがSVGから3D STLファイルを作成\n3️⃣ SVGとSTLの両方をダウンロード可能\n\n画像をアップロードして始めましょう！🚀",
+        "こんにちは！🍪✨\n\n新しいワークフローでクッキー型を作成します：\n1️⃣ GPT-4oがイラストからSVG形状を生成\n2️⃣ あなたがSVGを確認・修正指示\n3️⃣ 修正後にMCPサービスでSTL変換\n4️⃣ 最終的なファイルをダウンロード\n\n画像をアップロードして始めましょう！🚀",
       time: "14:30",
       isMe: false,
     },
   ])
   const [isGenerating, setIsGenerating] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [currentSvg, setCurrentSvg] = useState<string>("")
+  const [originalAnalysis, setOriginalAnalysis] = useState<string>("")
+  const [currentStage, setCurrentStage] = useState<"initial" | "svg_ready" | "stl_ready">("initial")
+  const [userInput, setUserInput] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isMobile = useIsMobile()
 
@@ -57,7 +63,7 @@ export default function Cookie3DChat() {
     const loadingMessage: Message = {
       id: Date.now() + 1,
       type: "text",
-      content: "🤖 Step 1: GPT-4oで画像を分析中...\n📐 SVG形状を生成しています...\n⚙️ MCPサービスでSTL変換準備中...",
+      content: "🤖 Step 1: GPT-4oで画像を分析中...\n📐 SVG形状を生成しています...",
       time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
       isMe: false,
       isLoading: true,
@@ -81,6 +87,10 @@ export default function Cookie3DChat() {
       setMessages((prev) => prev.filter((msg) => !msg.isLoading))
 
       if (result.success) {
+        setCurrentSvg(result.svgContent)
+        setOriginalAnalysis(result.analysis)
+        setCurrentStage("svg_ready")
+
         // Add analysis message first
         const analysisMessage: Message = {
           id: Date.now() + 2,
@@ -91,20 +101,19 @@ export default function Cookie3DChat() {
         }
         setMessages((prev) => [...prev, analysisMessage])
 
-        // Then add SVG + STL message
+        // Then add SVG message
         setTimeout(() => {
-          const resultMessage: Message = {
+          const svgMessage: Message = {
             id: Date.now() + 3,
-            type: "svg-stl",
-            content: "🎉 クッキー型の生成が完了しました！",
+            type: "svg",
+            content:
+              "📐 SVG形状を生成しました！\n\n確認して、修正が必要でしたらお知らせください。\n問題なければ「STL変換」ボタンを押してください。",
             svgContent: result.svgContent,
-            stlUrl: result.stlUrl,
-            stlSize: result.stlSize,
-            processingTime: result.processingTime,
             time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
             isMe: false,
+            stage: "svg_generated",
           }
-          setMessages((prev) => [...prev, resultMessage])
+          setMessages((prev) => [...prev, svgMessage])
         }, 1000)
       } else {
         // Add error message
@@ -133,6 +142,163 @@ export default function Cookie3DChat() {
     setIsGenerating(false)
   }
 
+  const handleUserMessage = async () => {
+    if (!userInput.trim() || currentStage !== "svg_ready") return
+
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now(),
+      type: "user-input",
+      content: userInput,
+      time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+      isMe: true,
+    }
+    setMessages((prev) => [...prev, userMessage])
+
+    // Add loading message
+    const loadingMessage: Message = {
+      id: Date.now() + 1,
+      type: "text",
+      content: "🔧 SVGを修正中...",
+      time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+      isMe: false,
+      isLoading: true,
+    }
+    setMessages((prev) => [...prev, loadingMessage])
+
+    setIsGenerating(true)
+    const currentInput = userInput
+    setUserInput("")
+
+    try {
+      const response = await fetch("/api/modify-svg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          svgContent: currentSvg,
+          userRequest: currentInput,
+          originalAnalysis,
+        }),
+      })
+
+      const result = await response.json()
+
+      // Remove loading message
+      setMessages((prev) => prev.filter((msg) => !msg.isLoading))
+
+      if (result.success) {
+        setCurrentSvg(result.svgContent)
+
+        // Add modified SVG message
+        const modifiedSvgMessage: Message = {
+          id: Date.now() + 2,
+          type: "svg",
+          content:
+            "✅ SVGを修正しました！\n\n確認して、さらに修正が必要でしたらお知らせください。\n問題なければ「STL変換」ボタンを押してください。",
+          svgContent: result.svgContent,
+          time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+          isMe: false,
+          stage: "svg_modified",
+        }
+        setMessages((prev) => [...prev, modifiedSvgMessage])
+      } else {
+        // Add error message
+        const errorMessage: Message = {
+          id: Date.now() + 2,
+          type: "text",
+          content: `❌ ${result.message}`,
+          time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+          isMe: false,
+        }
+        setMessages((prev) => [...prev, errorMessage])
+      }
+    } catch (error) {
+      // Remove loading message and add error message
+      setMessages((prev) => prev.filter((msg) => !msg.isLoading))
+      const errorMessage: Message = {
+        id: Date.now() + 2,
+        type: "text",
+        content: "🚨 修正中にエラーが発生しました。もう一度お試しください。",
+        time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+        isMe: false,
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    }
+
+    setIsGenerating(false)
+  }
+
+  const handleGenerateSTL = async () => {
+    if (!currentSvg || currentStage !== "svg_ready") return
+
+    // Add loading message
+    const loadingMessage: Message = {
+      id: Date.now(),
+      type: "text",
+      content: "⚙️ MCPサービスでSTL変換中...\n🏗️ 3Dモデルを生成しています...",
+      time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+      isMe: false,
+      isLoading: true,
+    }
+    setMessages((prev) => [...prev, loadingMessage])
+
+    setIsGenerating(true)
+
+    try {
+      const response = await fetch("/api/generate-stl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ svgContent: currentSvg }),
+      })
+
+      const result = await response.json()
+
+      // Remove loading message
+      setMessages((prev) => prev.filter((msg) => !msg.isLoading))
+
+      if (result.success) {
+        setCurrentStage("stl_ready")
+
+        // Add STL message
+        const stlMessage: Message = {
+          id: Date.now() + 1,
+          type: "stl",
+          content: "🎉 STLファイルの生成が完了しました！\n\n3Dプリンターで印刷できます。",
+          stlUrl: result.stlUrl,
+          stlSize: result.stlSize,
+          processingTime: result.processingTime,
+          time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+          isMe: false,
+          stage: "stl_generated",
+        }
+        setMessages((prev) => [...prev, stlMessage])
+      } else {
+        // Add error message
+        const errorMessage: Message = {
+          id: Date.now() + 1,
+          type: "text",
+          content: `❌ ${result.message}`,
+          time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+          isMe: false,
+        }
+        setMessages((prev) => [...prev, errorMessage])
+      }
+    } catch (error) {
+      // Remove loading message and add error message
+      setMessages((prev) => prev.filter((msg) => !msg.isLoading))
+      const errorMessage: Message = {
+        id: Date.now() + 1,
+        type: "text",
+        content: "🚨 STL生成中にエラーが発生しました。もう一度お試しください。",
+        time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+        isMe: false,
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    }
+
+    setIsGenerating(false)
+  }
+
   // Mobile Layout
   if (isMobile) {
     return (
@@ -146,7 +312,7 @@ export default function Cookie3DChat() {
               </div>
               <div>
                 <h1 className="font-bold text-amber-900 text-lg">cookieGPT</h1>
-                <p className="text-amber-800 text-sm">GPT→SVG→MCP→STL</p>
+                <p className="text-amber-800 text-sm">GPT→SVG→修正→STL</p>
               </div>
             </div>
             <Button
@@ -190,14 +356,20 @@ export default function Cookie3DChat() {
                       <span>SVG形状生成</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                         3
+                      </span>
+                      <span>ユーザー確認・修正</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        4
                       </span>
                       <span>MCP STL変換</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                        4
+                        5
                       </span>
                       <span>ファイルダウンロード</span>
                     </div>
@@ -213,7 +385,7 @@ export default function Cookie3DChat() {
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-3 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}>
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-lg shadow-md border-2 border-amber-200 flex-shrink-0">
-                {msg.isMe ? "🧁" : msg.type === "svg-stl" ? "🤖" : "🍪"}
+                {msg.isMe ? "🧁" : msg.type === "svg" ? "📐" : msg.type === "stl" ? "🏗️" : "🍪"}
               </div>
               <div className={`max-w-[85%] ${msg.isMe ? "items-end" : "items-start"} flex flex-col`}>
                 <div
@@ -239,10 +411,31 @@ export default function Cookie3DChat() {
                       <p className="text-xs">イラストをアップロードしました</p>
                     </div>
                   )}
-                  {msg.type === "svg-stl" && msg.svgContent && msg.stlUrl && (
+                  {msg.type === "user-input" && <p className="text-sm font-medium">{msg.content}</p>}
+                  {msg.type === "svg" && msg.svgContent && (
                     <div className="space-y-4">
                       <p className="text-sm font-medium">{msg.content}</p>
                       <SVGViewer svgContent={msg.svgContent} onDownload={() => {}} />
+                      {currentStage === "svg_ready" && (
+                        <Button
+                          onClick={handleGenerateSTL}
+                          disabled={isGenerating}
+                          className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                          size="sm"
+                        >
+                          {isGenerating ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <ArrowRight className="h-4 w-4 mr-2" />
+                          )}
+                          STL変換
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  {msg.type === "stl" && msg.stlUrl && (
+                    <div className="space-y-4">
+                      <p className="text-sm font-medium">{msg.content}</p>
                       <STLDownload
                         stlUrl={msg.stlUrl}
                         stlSize={msg.stlSize || ""}
@@ -259,26 +452,53 @@ export default function Cookie3DChat() {
 
         {/* Mobile Input */}
         <div className="p-4 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300">
-          <div className="bg-white rounded-full p-3 shadow-lg border-2 border-amber-200">
-            <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
-            <Button
-              className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-md rounded-full py-4 text-lg font-medium"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <div className="flex items-center gap-3">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                  <span>AI処理中...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Upload className="h-6 w-6" />
-                  <span>画像アップロード</span>
-                </div>
-              )}
-            </Button>
-          </div>
+          {currentStage === "initial" ? (
+            <div className="bg-white rounded-full p-3 shadow-lg border-2 border-amber-200">
+              <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+              <Button
+                className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-md rounded-full py-4 text-lg font-medium"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span>AI処理中...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <Upload className="h-6 w-6" />
+                    <span>画像アップロード</span>
+                  </div>
+                )}
+              </Button>
+            </div>
+          ) : currentStage === "svg_ready" ? (
+            <div className="flex gap-2 bg-white rounded-full p-2 shadow-lg border-2 border-amber-200">
+              <Input
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="SVGの修正指示を入力..."
+                className="border-0 bg-transparent focus-visible:ring-0 text-amber-900 placeholder:text-amber-500"
+                onKeyPress={(e) => e.key === "Enter" && handleUserMessage()}
+                disabled={isGenerating}
+              />
+              <Button
+                onClick={handleUserMessage}
+                disabled={!userInput.trim() || isGenerating}
+                size="icon"
+                className="rounded-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-md"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-full p-3 shadow-lg border-2 border-amber-200">
+              <div className="text-center text-amber-800 font-medium">
+                🎉 完了！新しいクッキー型を作成するには画像をアップロードしてください
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -296,7 +516,7 @@ export default function Cookie3DChat() {
             </div>
             <div>
               <h1 className="font-bold text-amber-900 text-xl">cookieGPT</h1>
-              <p className="text-amber-800 text-sm">GPT→SVG→MCP→STL</p>
+              <p className="text-amber-800 text-sm">GPT→SVG→修正→STL</p>
             </div>
           </div>
         </div>
@@ -322,13 +542,22 @@ export default function Cookie3DChat() {
                   2
                 </span>
                 <div>
-                  <p className="font-medium text-sm">SVG最適化</p>
-                  <p className="text-xs text-gray-600">クッキー型用形状</p>
+                  <p className="font-medium text-sm">SVG確認</p>
+                  <p className="text-xs text-gray-600">プレビュー表示</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  3
+                </span>
+                <div>
+                  <p className="font-medium text-sm">修正指示</p>
+                  <p className="text-xs text-gray-600">チャットで調整</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                  3
+                  4
                 </span>
                 <div>
                   <p className="font-medium text-sm">MCP変換</p>
@@ -337,7 +566,7 @@ export default function Cookie3DChat() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                  4
+                  5
                 </span>
                 <div>
                   <p className="font-medium text-sm">ダウンロード</p>
@@ -350,9 +579,10 @@ export default function Cookie3DChat() {
           <div className="p-4 bg-white rounded-xl shadow-md border-2 border-amber-200">
             <h3 className="font-semibold text-amber-900 mb-3">🎯 特徴</h3>
             <ul className="text-sm text-amber-800 space-y-2">
+              <li>• インタラクティブな修正</li>
+              <li>• リアルタイムプレビュー</li>
               <li>• 実用的なSTLファイル出力</li>
               <li>• 3Dプリンター対応</li>
-              <li>• SVGプレビュー機能</li>
               <li>• MCP外部連携</li>
             </ul>
           </div>
@@ -366,7 +596,7 @@ export default function Cookie3DChat() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-amber-900 text-2xl">cookieGPT</h2>
-              <p className="text-amber-800">画像→SVG→STL の自動変換ワークフロー</p>
+              <p className="text-amber-800">画像→SVG→修正→STL の対話型ワークフロー</p>
             </div>
             <div className="flex items-center gap-2 text-amber-900">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -380,7 +610,7 @@ export default function Cookie3DChat() {
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-4 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}>
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xl shadow-lg border-2 border-amber-200 flex-shrink-0">
-                {msg.isMe ? "🧁" : msg.type === "svg-stl" ? "🤖" : "🍪"}
+                {msg.isMe ? "🧁" : msg.type === "svg" ? "📐" : msg.type === "stl" ? "🏗️" : "🍪"}
               </div>
               <div className={`max-w-[70%] ${msg.isMe ? "items-end" : "items-start"} flex flex-col`}>
                 <div
@@ -406,10 +636,30 @@ export default function Cookie3DChat() {
                       <p className="text-sm">イラストをアップロードしました</p>
                     </div>
                   )}
-                  {msg.type === "svg-stl" && msg.svgContent && msg.stlUrl && (
+                  {msg.type === "user-input" && <p className="font-medium">{msg.content}</p>}
+                  {msg.type === "svg" && msg.svgContent && (
                     <div className="space-y-4">
                       <p className="font-medium">{msg.content}</p>
                       <SVGViewer svgContent={msg.svgContent} onDownload={() => {}} />
+                      {currentStage === "svg_ready" && (
+                        <Button
+                          onClick={handleGenerateSTL}
+                          disabled={isGenerating}
+                          className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                        >
+                          {isGenerating ? (
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                          ) : (
+                            <ArrowRight className="h-5 w-5 mr-2" />
+                          )}
+                          STL変換を実行
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  {msg.type === "stl" && msg.stlUrl && (
+                    <div className="space-y-4">
+                      <p className="font-medium">{msg.content}</p>
                       <STLDownload
                         stlUrl={msg.stlUrl}
                         stlSize={msg.stlSize || ""}
@@ -427,24 +677,59 @@ export default function Cookie3DChat() {
         {/* Desktop Input */}
         <div className="p-6 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300">
           <div className="max-w-2xl mx-auto">
-            <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
-            <Button
-              className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg rounded-full py-6 text-lg font-medium"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <div className="flex items-center gap-4">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <span>AI処理中... GPT→SVG→MCP→STL</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-4">
-                  <Upload className="h-8 w-8" />
-                  <span>クッキー型を作成</span>
-                </div>
-              )}
-            </Button>
+            {currentStage === "initial" ? (
+              <>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <Button
+                  className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg rounded-full py-6 text-lg font-medium"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <div className="flex items-center gap-4">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <span>AI処理中... GPT→SVG生成</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4">
+                      <Upload className="h-8 w-8" />
+                      <span>クッキー型を作成</span>
+                    </div>
+                  )}
+                </Button>
+              </>
+            ) : currentStage === "svg_ready" ? (
+              <div className="flex gap-3 bg-white rounded-full p-3 shadow-lg border-2 border-amber-200">
+                <Input
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  placeholder="SVGの修正指示を入力してください（例：もう少し丸くして、線を太くして）"
+                  className="border-0 bg-transparent focus-visible:ring-0 text-amber-900 placeholder:text-amber-500"
+                  onKeyPress={(e) => e.key === "Enter" && handleUserMessage()}
+                  disabled={isGenerating}
+                />
+                <Button
+                  onClick={handleUserMessage}
+                  disabled={!userInput.trim() || isGenerating}
+                  size="icon"
+                  className="rounded-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-md"
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
+              </div>
+            ) : (
+              <div className="bg-white rounded-full p-4 shadow-lg border-2 border-amber-200 text-center">
+                <p className="text-amber-800 font-medium text-lg">
+                  🎉 完了！新しいクッキー型を作成するには画像をアップロードしてください
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -59,25 +59,19 @@ ${analysis}
       ],
     })
 
-    // Simulate MCP STL conversion
-    const stlUrl = `/api/download/cookie-${Date.now()}.stl`
-    const stlSize = "2.3 MB"
-    const processingTime = "3.2秒"
-
+    // SVGのみを返す（STLは後で生成）
     return NextResponse.json({
       success: true,
       analysis,
       svgContent: svgContent.replace(/```svg\n?|\n?```/g, "").trim(),
-      stlUrl,
-      stlSize,
-      processingTime,
+      stage: "svg_generated", // 段階を示すフラグ
     })
   } catch (error) {
-    console.error("Error generating cookie:", error)
+    console.error("Error generating SVG:", error)
     return NextResponse.json(
       {
         success: false,
-        message: "クッキー型の生成中にエラーが発生しました",
+        message: "SVGの生成中にエラーが発生しました",
         analysis: "エラーが発生したため、分析を完了できませんでした。",
       },
       { status: 500 },
