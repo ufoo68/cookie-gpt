@@ -31,7 +31,7 @@ Continue building your app on:
 
 ## Application Architecture
 
-```mermaid
+\`\`\`mermaid
 graph TD
     subgraph "User Interaction"
         User -- "Accesses App" --> Browser
@@ -70,4 +70,4 @@ graph TD
 
     classDef App fill:#fff,stroke:#333,stroke-width:2px
     class App App
-```
+\`\`\`
