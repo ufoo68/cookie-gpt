@@ -52,8 +52,40 @@ function STLMesh({ geometry }: { geometry: THREE.BufferGeometry }) {
     }
   })
 
+  // Calculate scale to fit in viewport
+  const scale = useMemo(() => {
+    if (!geometry.boundingBox) return 1
+
+    const box = geometry.boundingBox
+    const size = new THREE.Vector3()
+    box.getSize(size)
+
+    // Get the largest dimension
+    const maxDimension = Math.max(size.x, size.y, size.z)
+
+    // Scale to fit within a 3-unit cube
+    const targetSize = 3
+    return maxDimension > 0 ? targetSize / maxDimension : 1
+  }, [geometry])
+
+  // Calculate position to place bottom on ground
+  const yOffset = useMemo(() => {
+    if (!geometry.boundingBox) return 0
+
+    const box = geometry.boundingBox
+    // Move up by half the scaled height to place bottom on ground
+    return -(box.min.y * scale)
+  }, [geometry, scale])
+
   return (
-    <mesh ref={meshRef} geometry={geometry} castShadow receiveShadow>
+    <mesh
+      ref={meshRef}
+      geometry={geometry}
+      castShadow
+      receiveShadow
+      scale={[scale, scale, scale]}
+      position={[0, yOffset, 0]}
+    >
       <meshStandardMaterial color="#d97706" roughness={0.3} metalness={0.1} side={THREE.DoubleSide} />
     </mesh>
   )
@@ -70,26 +102,26 @@ function CookieShape() {
   })
 
   return (
-    <group>
+    <group position={[0, 0.15, 0]}>
       <mesh ref={meshRef} castShadow receiveShadow>
-        <cylinderGeometry args={[2, 2, 0.3, 32]} />
+        <cylinderGeometry args={[1.5, 1.5, 0.3, 32]} />
         <meshStandardMaterial color="#d97706" roughness={0.3} metalness={0.1} />
       </mesh>
       {/* Cookie chips */}
-      <mesh position={[0.5, 0.2, 0.5]} castShadow>
-        <sphereGeometry args={[0.15, 8, 8]} />
+      <mesh position={[0.4, 0.2, 0.4]} castShadow>
+        <sphereGeometry args={[0.1, 8, 8]} />
         <meshStandardMaterial color="#8b4513" />
       </mesh>
-      <mesh position={[-0.7, 0.2, 0.3]} castShadow>
+      <mesh position={[-0.5, 0.2, 0.2]} castShadow>
+        <sphereGeometry args={[0.08, 8, 8]} />
+        <meshStandardMaterial color="#8b4513" />
+      </mesh>
+      <mesh position={[0.2, 0.2, -0.6]} castShadow>
         <sphereGeometry args={[0.12, 8, 8]} />
         <meshStandardMaterial color="#8b4513" />
       </mesh>
-      <mesh position={[0.3, 0.2, -0.8]} castShadow>
-        <sphereGeometry args={[0.18, 8, 8]} />
-        <meshStandardMaterial color="#8b4513" />
-      </mesh>
-      <mesh position={[-0.5, 0.2, -0.5]} castShadow>
-        <sphereGeometry args={[0.14, 8, 8]} />
+      <mesh position={[-0.3, 0.2, -0.4]} castShadow>
+        <sphereGeometry args={[0.09, 8, 8]} />
         <meshStandardMaterial color="#8b4513" />
       </mesh>
     </group>
@@ -103,13 +135,13 @@ function Scene({ geometry }: { geometry: THREE.BufferGeometry | null }) {
       {geometry ? <STLMesh geometry={geometry} /> : <CookieShape />}
 
       {/* Ground plane */}
-      <mesh receiveShadow position={[0, -2.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh receiveShadow position={[0, -0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[20, 20]} />
-        <meshStandardMaterial color="#f3f4f6" transparent opacity={0.5} />
+        <meshStandardMaterial color="#f3f4f6" transparent opacity={0.8} />
       </mesh>
 
       {/* Grid helper */}
-      <gridHelper args={[10, 10, "#f59e0b", "#fcd34d"]} position={[0, -2.4, 0]} />
+      <gridHelper args={[8, 16, "#f59e0b", "#fcd34d"]} position={[0, 0, 0]} />
     </>
   )
 }
@@ -181,7 +213,7 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
         geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3))
         geometry.computeBoundingBox()
         geometry.computeBoundingSphere()
-        geometry.center() // Center the geometry
+        // Don't center the geometry here - we'll handle positioning in the mesh component
       }
 
       // Calculate dimensions
@@ -192,7 +224,7 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
             height: Math.abs(box.max.y - box.min.y),
             depth: Math.abs(box.max.z - box.min.z),
           }
-        : { width: 4, height: 4, depth: 0.6 } // Default cookie dimensions
+        : { width: 3, height: 3, depth: 0.6 } // Default cookie dimensions
 
       const stats: STLStats = {
         triangles: triangleCount,
@@ -213,7 +245,7 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
           triangles: 0,
           vertices: 0,
           fileSize: new Blob([stlContent]).size,
-          dimensions: { width: 4, height: 4, depth: 0.6 },
+          dimensions: { width: 3, height: 3, depth: 0.6 },
           isManifold: false,
           isWatertight: false,
           format: "ASCII" as const,
@@ -270,7 +302,7 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
           <CardContent>
             <div className="relative h-80 w-full rounded-lg overflow-hidden bg-gradient-to-b from-amber-100 to-amber-200">
               <Canvas
-                camera={{ position: [5, 5, 5], fov: 50 }}
+                camera={{ position: [4, 4, 4], fov: 50 }}
                 shadows
                 gl={{ antialias: true, alpha: false }}
                 dpr={[1, 2]}
@@ -282,15 +314,16 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
                     enableZoom
                     enableRotate
                     autoRotate={false}
-                    maxDistance={20}
+                    maxDistance={15}
                     minDistance={2}
                     enableDamping
                     dampingFactor={0.05}
+                    target={[0, 1, 0]}
                   />
                   <Environment preset="studio" />
                   <ambientLight intensity={0.4} />
                   <directionalLight
-                    position={[10, 10, 5]}
+                    position={[8, 8, 5]}
                     intensity={1}
                     castShadow
                     shadow-mapSize-width={2048}
@@ -301,7 +334,7 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
                     shadow-camera-top={10}
                     shadow-camera-bottom={-10}
                   />
-                  <pointLight position={[-10, -10, -10]} intensity={0.3} />
+                  <pointLight position={[-5, 5, -5]} intensity={0.3} />
                 </Suspense>
               </Canvas>
 
