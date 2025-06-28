@@ -13,6 +13,7 @@ interface Message {
   type: "text" | "image" | "3d-model"
   content: string
   modelUrl?: string
+  analysis?: string
   time: string
   isMe: boolean
   isLoading?: boolean
@@ -24,7 +25,8 @@ export default function Component() {
     {
       id: 1,
       type: "text",
-      content: "こんにちは！イラストを投稿すると、クッキー型の3Dモデルに変換してお返しします！🍪",
+      content:
+        "こんにちは！イラストを投稿すると、OpenAI Agents SDKを使ってクッキー型の3Dモデルに変換してお返しします！🍪🤖",
       time: "14:30",
       isMe: false,
     },
@@ -64,7 +66,7 @@ export default function Component() {
     const loadingMessage: Message = {
       id: Date.now() + 1,
       type: "text",
-      content: "クッキー型3Dモデルを生成中です...🍪✨",
+      content: "OpenAI Agents SDKで画像を分析中...🤖\nクッキー型3Dモデルを生成しています...🍪✨",
       time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
       isMe: false,
       isLoading: true,
@@ -88,16 +90,29 @@ export default function Component() {
       setMessages((prev) => prev.filter((msg) => !msg.isLoading))
 
       if (result.success) {
-        // Add 3D model message
-        const modelMessage: Message = {
+        // Add AI analysis message first
+        const analysisMessage: Message = {
           id: Date.now() + 2,
-          type: "3d-model",
-          content: result.message,
-          modelUrl: result.modelUrl,
+          type: "text",
+          content: `🤖 AI分析結果:\n${result.analysis}`,
           time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
           isMe: false,
         }
-        setMessages((prev) => [...prev, modelMessage])
+        setMessages((prev) => [...prev, analysisMessage])
+
+        // Then add 3D model message
+        setTimeout(() => {
+          const modelMessage: Message = {
+            id: Date.now() + 3,
+            type: "3d-model",
+            content: result.message,
+            modelUrl: result.modelUrl,
+            analysis: result.analysis,
+            time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+            isMe: false,
+          }
+          setMessages((prev) => [...prev, modelMessage])
+        }, 1000)
       } else {
         // Add error message
         const errorMessage: Message = {
@@ -132,8 +147,8 @@ export default function Component() {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-xl shadow-md">🍪</div>
           <div>
-            <h1 className="font-bold text-amber-900 text-lg">クッキー3D工房</h1>
-            <p className="text-amber-800 text-sm">イラスト→3Dクッキー変換</p>
+            <h1 className="font-bold text-amber-900 text-lg">AI クッキー3D工房</h1>
+            <p className="text-amber-800 text-sm">OpenAI Agents SDK搭載</p>
           </div>
         </div>
       </div>
@@ -143,7 +158,7 @@ export default function Component() {
         {messages.map((msg) => (
           <div key={msg.id} className={`flex gap-3 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}>
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-lg shadow-md border-2 border-amber-200">
-              {msg.isMe ? "🧁" : "🍪"}
+              {msg.isMe ? "🧁" : msg.type === "3d-model" ? "🤖" : "🍪"}
             </div>
             <div className={`max-w-[80%] ${msg.isMe ? "items-end" : "items-start"} flex flex-col`}>
               <div
@@ -154,9 +169,9 @@ export default function Component() {
                 }`}
               >
                 {msg.type === "text" && (
-                  <div className="flex items-center gap-2">
-                    {msg.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                    <p className="text-sm font-medium">{msg.content}</p>
+                  <div className="flex items-start gap-2">
+                    {msg.isLoading && <Loader2 className="h-4 w-4 animate-spin mt-1 flex-shrink-0" />}
+                    <p className="text-sm font-medium whitespace-pre-line">{msg.content}</p>
                   </div>
                 )}
                 {msg.type === "image" && (
@@ -172,8 +187,8 @@ export default function Component() {
                 {msg.type === "3d-model" && msg.modelUrl && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium">{msg.content}</p>
-                    <Cookie3DViewer modelUrl={msg.modelUrl} />
-                    <p className="text-xs text-amber-700">マウスで回転・ズームできます</p>
+                    <Cookie3DViewer modelUrl={msg.modelUrl} analysis={msg.analysis} />
+                    <p className="text-xs text-amber-700">🤖 AI生成 | マウスで回転・ズーム可能</p>
                   </div>
                 )}
               </div>
