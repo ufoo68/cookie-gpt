@@ -3,6 +3,7 @@
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Environment, Sphere, Cylinder } from "@react-three/drei"
 import { Suspense } from "react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Cookie3DProps {
   modelUrl: string
@@ -37,8 +38,12 @@ function CookieModel({ analysis }: { analysis?: string }) {
 }
 
 export default function Cookie3DViewer({ modelUrl, analysis }: Cookie3DProps) {
+  const isMobile = useIsMobile()
+
   return (
-    <div className="w-full h-48 bg-gradient-to-b from-amber-100 to-orange-200 rounded-xl border-2 border-amber-300 overflow-hidden">
+    <div
+      className={`w-full bg-gradient-to-b from-amber-100 to-orange-200 rounded-xl border-2 border-amber-300 overflow-hidden ${isMobile ? "h-48" : "h-full"}`}
+    >
       <Canvas camera={{ position: [0, 2, 5], fov: 45 }}>
         <Suspense fallback={null}>
           <Environment preset="sunset" />
@@ -46,7 +51,14 @@ export default function Cookie3DViewer({ modelUrl, analysis }: Cookie3DProps) {
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <pointLight position={[-10, -10, -5]} intensity={0.3} />
           <CookieModel analysis={analysis} />
-          <OrbitControls enableZoom={true} enablePan={false} />
+          <OrbitControls
+            enableZoom={true}
+            enablePan={false}
+            enableDamping={true}
+            dampingFactor={0.05}
+            maxDistance={10}
+            minDistance={2}
+          />
         </Suspense>
       </Canvas>
     </div>
