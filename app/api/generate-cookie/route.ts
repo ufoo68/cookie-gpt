@@ -16,8 +16,8 @@ export async function POST(request: Request) {
     const base64 = buffer.toString("base64")
     const imageUrl = `data:${image.type};base64,${base64}`
 
-    // Use OpenAI Agents SDK to analyze the image and generate 3D model instructions
-    const { text } = await generateText({
+    // Step 1: GPT-4o generates SVG from image
+    const { text: svgResult } = await generateText({
       model: openai("gpt-4o"),
       messages: [
         {
@@ -25,7 +25,24 @@ export async function POST(request: Request) {
           content: [
             {
               type: "text",
-              text: "この画像を分析して、クッキー型の3Dモデルに変換するための詳細な説明を生成してください。形状、色、テクスチャ、サイズなどの特徴を含めてください。",
+              text: `この画像を分析して、クッキー型として使えるSVGパスを生成してください。以下の要件に従ってください：
+
+要件:
+1. シンプルで切り抜きやすい形状にする
+2. 細かすぎる詳細は省略する
+3. クッキー型として実用的なサイズ（100x100mm程度）
+4. SVGのpathタグのみを出力する
+5. viewBox="0 0 100 100"で統一する
+6. 形状は閉じたパスにする
+
+出力形式:
+\`\`\`svg
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="..." fill="none" stroke="black" stroke-width="1"/>
+</svg>
+\`\`\`
+
+分析内容も含めて回答してください。`,
             },
             {
               type: "image",
@@ -36,23 +53,55 @@ export async function POST(request: Request) {
       ],
     })
 
-    // Simulate 3D model generation (in a real implementation, you would use the analysis to generate an actual 3D model)
-    const mockModelUrl = "/placeholder-cookie.glb"
+    // Extract SVG from the response
+    const svgMatch = svgResult.match(/```svg\n([\s\S]*?)\n```/)
+    const svgContent = svgMatch ? svgMatch[1] : null
+
+    if (!svgContent) {
+      return Response.json(
+        {
+          error: "Failed to generate SVG",
+          message: "SVGの生成に失敗しました。画像を確認してもう一度お試しください。",
+          analysis: svgResult,
+        },
+        { status: 400 },
+      )
+    }
+
+    // Step 2: Call MCP service to convert SVG to STL
+    // This would be replaced with actual MCP integration
+    const mcpResponse = await callMCPService(svgContent)
 
     return Response.json({
       success: true,
-      modelUrl: mockModelUrl,
-      message: "クッキー型3Dモデルが完成しました！🍪",
-      analysis: text,
+      message: "クッキー型が完成しました！🍪",
+      analysis: svgResult,
+      svgContent: svgContent,
+      stlUrl: mcpResponse.stlUrl,
+      stlSize: mcpResponse.stlSize,
+      processingTime: mcpResponse.processingTime,
     })
   } catch (error) {
-    console.error("Error generating 3D cookie:", error)
+    console.error("Error generating cookie cutter:", error)
     return Response.json(
       {
-        error: "Failed to generate 3D cookie model",
-        message: "クッキー生成に失敗しました。もう一度お試しください。",
+        error: "Failed to generate cookie cutter",
+        message: "クッキー型の生成に失敗しました。もう一度お試しください。",
       },
       { status: 500 },
     )
+  }
+}
+
+// Mock MCP service call - replace with actual MCP integration
+async function callMCPService(svgContent: string) {
+  // Simulate MCP processing time
+  await new Promise((resolve) => setTimeout(resolve, 2000))
+
+  // Mock response - in real implementation, this would call MCP
+  return {
+    stlUrl: `/api/download/cookie-${Date.now()}.stl`,
+    stlSize: "2.3 MB",
+    processingTime: "2.1s",
   }
 }

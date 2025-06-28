@@ -3,17 +3,21 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Send, Upload, Loader2, Menu, X } from "lucide-react"
+import { Send, Upload, Loader2, Menu, X, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useIsMobile } from "@/hooks/use-mobile"
-import Cookie3DViewer from "./components/cookie-3d-viewer"
+import SVGViewer from "./components/svg-viewer"
+import STLDownload from "./components/stl-download"
 
 interface Message {
   id: number
-  type: "text" | "image" | "3d-model"
+  type: "text" | "image" | "svg-stl"
   content: string
-  modelUrl?: string
+  svgContent?: string
+  stlUrl?: string
+  stlSize?: string
+  processingTime?: string
   analysis?: string
   time: string
   isMe: boolean
@@ -27,7 +31,7 @@ export default function Component() {
       id: 1,
       type: "text",
       content:
-        "こんにちは！イラストを投稿すると、OpenAI Agents SDKを使ってクッキー型の3Dモデルに変換してお返しします！🍪🤖",
+        "こんにちは！🍪✨\n\n新しいワークフローでクッキー型を作成します：\n1️⃣ GPT-4oがイラストからSVG形状を生成\n2️⃣ MCPサービスがSVGから3D STLファイルを作成\n3️⃣ SVGとSTLの両方をダウンロード可能\n\n画像をアップロードして始めましょう！🚀",
       time: "14:30",
       isMe: false,
     },
@@ -69,7 +73,7 @@ export default function Component() {
     const loadingMessage: Message = {
       id: Date.now() + 1,
       type: "text",
-      content: "OpenAI Agents SDKで画像を分析中...🤖\nクッキー型3Dモデルを生成しています...🍪✨",
+      content: "🤖 Step 1: GPT-4oで画像を分析中...\n📐 SVG形状を生成しています...\n⚙️ MCPサービスでSTL変換準備中...",
       time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
       isMe: false,
       isLoading: true,
@@ -93,35 +97,37 @@ export default function Component() {
       setMessages((prev) => prev.filter((msg) => !msg.isLoading))
 
       if (result.success) {
-        // Add AI analysis message first
+        // Add analysis message first
         const analysisMessage: Message = {
           id: Date.now() + 2,
           type: "text",
-          content: `🤖 AI分析結果:\n${result.analysis}`,
+          content: `🤖 AI分析完了！\n\n${result.analysis}`,
           time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
           isMe: false,
         }
         setMessages((prev) => [...prev, analysisMessage])
 
-        // Then add 3D model message
+        // Then add SVG + STL message
         setTimeout(() => {
-          const modelMessage: Message = {
+          const resultMessage: Message = {
             id: Date.now() + 3,
-            type: "3d-model",
-            content: result.message,
-            modelUrl: result.modelUrl,
-            analysis: result.analysis,
+            type: "svg-stl",
+            content: "🎉 クッキー型の生成が完了しました！",
+            svgContent: result.svgContent,
+            stlUrl: result.stlUrl,
+            stlSize: result.stlSize,
+            processingTime: result.processingTime,
             time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
             isMe: false,
           }
-          setMessages((prev) => [...prev, modelMessage])
+          setMessages((prev) => [...prev, resultMessage])
         }, 1000)
       } else {
         // Add error message
         const errorMessage: Message = {
           id: Date.now() + 2,
           type: "text",
-          content: result.message || "エラーが発生しました。もう一度お試しください。",
+          content: `❌ ${result.message}\n\n${result.analysis || ""}`,
           time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
           isMe: false,
         }
@@ -133,7 +139,7 @@ export default function Component() {
       const errorMessage: Message = {
         id: Date.now() + 2,
         type: "text",
-        content: "ネットワークエラーが発生しました。もう一度お試しください。",
+        content: "🚨 ネットワークエラーが発生しました。もう一度お試しください。",
         time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
         isMe: false,
       }
@@ -155,8 +161,8 @@ export default function Component() {
                 🍪
               </div>
               <div>
-                <h1 className="font-bold text-amber-900 text-lg">AI クッキー3D工房</h1>
-                <p className="text-amber-800 text-sm">OpenAI Agents SDK搭載</p>
+                <h1 className="font-bold text-amber-900 text-lg">AI クッキー工房</h1>
+                <p className="text-amber-800 text-sm">GPT→SVG→MCP→STL</p>
               </div>
             </div>
             <Button
@@ -175,19 +181,43 @@ export default function Component() {
           <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)}>
             <div className="absolute right-0 top-0 h-full w-80 bg-gradient-to-b from-amber-100 to-orange-100 p-4 shadow-xl">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-amber-900">メニュー</h2>
+                <h2 className="text-xl font-bold text-amber-900">ワークフロー</h2>
                 <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
                   <X className="h-6 w-6 text-amber-900" />
                 </Button>
               </div>
               <div className="space-y-4">
                 <div className="p-4 bg-white rounded-lg shadow-md border-2 border-amber-200">
-                  <h3 className="font-semibold text-amber-900 mb-2">🍪 使い方</h3>
-                  <p className="text-sm text-amber-800">画像をアップロードするとAIがクッキー型3Dモデルに変換します</p>
-                </div>
-                <div className="p-4 bg-white rounded-lg shadow-md border-2 border-amber-200">
-                  <h3 className="font-semibold text-amber-900 mb-2">🤖 AI機能</h3>
-                  <p className="text-sm text-amber-800">OpenAI GPT-4oによる高精度画像解析</p>
+                  <h3 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                    <Zap className="h-4 w-4" />
+                    新ワークフロー
+                  </h3>
+                  <div className="text-sm text-amber-800 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        1
+                      </span>
+                      <span>GPT-4o画像解析</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        2
+                      </span>
+                      <span>SVG形状生成</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        3
+                      </span>
+                      <span>MCP STL変換</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        4
+                      </span>
+                      <span>ファイルダウンロード</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -199,9 +229,9 @@ export default function Component() {
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-3 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}>
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-lg shadow-md border-2 border-amber-200 flex-shrink-0">
-                {msg.isMe ? "🧁" : msg.type === "3d-model" ? "🤖" : "🍪"}
+                {msg.isMe ? "🧁" : msg.type === "svg-stl" ? "🤖" : "🍪"}
               </div>
-              <div className={`max-w-[75%] ${msg.isMe ? "items-end" : "items-start"} flex flex-col`}>
+              <div className={`max-w-[85%] ${msg.isMe ? "items-end" : "items-start"} flex flex-col`}>
                 <div
                   className={`px-4 py-3 rounded-2xl shadow-md ${
                     msg.isMe
@@ -225,11 +255,15 @@ export default function Component() {
                       <p className="text-xs">イラストをアップロードしました</p>
                     </div>
                   )}
-                  {msg.type === "3d-model" && msg.modelUrl && (
-                    <div className="space-y-2">
+                  {msg.type === "svg-stl" && msg.svgContent && msg.stlUrl && (
+                    <div className="space-y-4">
                       <p className="text-sm font-medium">{msg.content}</p>
-                      <Cookie3DViewer modelUrl={msg.modelUrl} analysis={msg.analysis} />
-                      <p className="text-xs text-amber-700">🤖 AI生成 | タッチで回転・ピンチでズーム</p>
+                      <SVGViewer svgContent={msg.svgContent} onDownload={() => {}} />
+                      <STLDownload
+                        stlUrl={msg.stlUrl}
+                        stlSize={msg.stlSize || ""}
+                        processingTime={msg.processingTime || ""}
+                      />
                     </div>
                   )}
                 </div>
@@ -255,7 +289,7 @@ export default function Component() {
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="メッセージまたは画像..."
+              placeholder="画像をアップロード..."
               className="border-0 bg-transparent focus-visible:ring-0 text-amber-900 placeholder:text-amber-500 text-base"
               onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             />
@@ -283,40 +317,65 @@ export default function Component() {
               🍪
             </div>
             <div>
-              <h1 className="font-bold text-amber-900 text-xl">AI クッキー3D工房</h1>
-              <p className="text-amber-800 text-sm">OpenAI Agents SDK搭載</p>
+              <h1 className="font-bold text-amber-900 text-xl">AI クッキー工房</h1>
+              <p className="text-amber-800 text-sm">GPT→SVG→MCP→STL</p>
             </div>
           </div>
         </div>
 
         <div className="p-6 space-y-6">
           <div className="p-4 bg-white rounded-xl shadow-md border-2 border-amber-200">
-            <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">🍪 使い方</h3>
-            <ul className="text-sm text-amber-800 space-y-2">
-              <li>• 画像をアップロード</li>
-              <li>• AIが自動解析</li>
-              <li>• 3Dクッキーモデル生成</li>
-              <li>• マウスで回転・ズーム</li>
-            </ul>
+            <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              新ワークフロー
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  1
+                </span>
+                <div>
+                  <p className="font-medium text-sm">GPT-4o解析</p>
+                  <p className="text-xs text-gray-600">画像からSVG生成</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  2
+                </span>
+                <div>
+                  <p className="font-medium text-sm">SVG最適化</p>
+                  <p className="text-xs text-gray-600">クッキー型用形状</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  3
+                </span>
+                <div>
+                  <p className="font-medium text-sm">MCP変換</p>
+                  <p className="text-xs text-gray-600">SVG→STL変換</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  4
+                </span>
+                <div>
+                  <p className="font-medium text-sm">ダウンロード</p>
+                  <p className="text-xs text-gray-600">SVG + STLファイル</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="p-4 bg-white rounded-xl shadow-md border-2 border-amber-200">
-            <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">🤖 AI機能</h3>
+            <h3 className="font-semibold text-amber-900 mb-3">🎯 特徴</h3>
             <ul className="text-sm text-amber-800 space-y-2">
-              <li>• OpenAI GPT-4o</li>
-              <li>• 高精度画像解析</li>
-              <li>• リアルタイム生成</li>
-              <li>• 詳細分析レポート</li>
-            </ul>
-          </div>
-
-          <div className="p-4 bg-white rounded-xl shadow-md border-2 border-amber-200">
-            <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">✨ 特徴</h3>
-            <ul className="text-sm text-amber-800 space-y-2">
-              <li>• プロシージャル生成</li>
-              <li>• リアルタイム3D</li>
-              <li>• レスポンシブ対応</li>
-              <li>• 直感的操作</li>
+              <li>• 実用的なSTLファイル出力</li>
+              <li>• 3Dプリンター対応</li>
+              <li>• SVGプレビュー機能</li>
+              <li>• MCP外部連携</li>
             </ul>
           </div>
         </div>
@@ -328,12 +387,12 @@ export default function Component() {
         <div className="bg-gradient-to-r from-amber-300 to-orange-300 p-6 shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-amber-900 text-2xl">チャット</h2>
-              <p className="text-amber-800">AIとクッキー作りを楽しもう！</p>
+              <h2 className="font-bold text-amber-900 text-2xl">クッキー型生成チャット</h2>
+              <p className="text-amber-800">画像→SVG→STL の自動変換ワークフロー</p>
             </div>
             <div className="flex items-center gap-2 text-amber-900">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium">AI オンライン</span>
+              <span className="text-sm font-medium">MCP連携 オンライン</span>
             </div>
           </div>
         </div>
@@ -343,9 +402,9 @@ export default function Component() {
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-4 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}>
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xl shadow-lg border-2 border-amber-200 flex-shrink-0">
-                {msg.isMe ? "🧁" : msg.type === "3d-model" ? "🤖" : "🍪"}
+                {msg.isMe ? "🧁" : msg.type === "svg-stl" ? "🤖" : "🍪"}
               </div>
-              <div className={`max-w-[60%] ${msg.isMe ? "items-end" : "items-start"} flex flex-col`}>
+              <div className={`max-w-[70%] ${msg.isMe ? "items-end" : "items-start"} flex flex-col`}>
                 <div
                   className={`px-6 py-4 rounded-2xl shadow-lg ${
                     msg.isMe
@@ -369,13 +428,15 @@ export default function Component() {
                       <p className="text-sm">イラストをアップロードしました</p>
                     </div>
                   )}
-                  {msg.type === "3d-model" && msg.modelUrl && (
-                    <div className="space-y-3">
+                  {msg.type === "svg-stl" && msg.svgContent && msg.stlUrl && (
+                    <div className="space-y-4">
                       <p className="font-medium">{msg.content}</p>
-                      <div className="h-64">
-                        <Cookie3DViewer modelUrl={msg.modelUrl} analysis={msg.analysis} />
-                      </div>
-                      <p className="text-sm text-amber-700">🤖 AI生成 | マウスで回転・ズーム可能</p>
+                      <SVGViewer svgContent={msg.svgContent} onDownload={() => {}} />
+                      <STLDownload
+                        stlUrl={msg.stlUrl}
+                        stlSize={msg.stlSize || ""}
+                        processingTime={msg.processingTime || ""}
+                      />
                     </div>
                   )}
                 </div>
@@ -401,7 +462,7 @@ export default function Component() {
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="メッセージを入力するか、画像をアップロードしてください..."
+              placeholder="画像をアップロードしてクッキー型を生成..."
               className="border-0 bg-transparent focus-visible:ring-0 text-amber-900 placeholder:text-amber-500 text-lg"
               onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             />
@@ -415,11 +476,6 @@ export default function Component() {
           </div>
         </div>
       </div>
-
-      {/* Desktop Cookie crumbs decoration */}
-      <div className="absolute top-32 left-96 w-3 h-3 bg-amber-400 rounded-full opacity-60 animate-pulse"></div>
-      <div className="absolute top-48 right-32 w-2 h-2 bg-orange-400 rounded-full opacity-40 animate-bounce"></div>
-      <div className="absolute top-64 left-1/2 w-2.5 h-2.5 bg-amber-500 rounded-full opacity-50 animate-pulse"></div>
     </div>
   )
 }
