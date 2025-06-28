@@ -100,7 +100,7 @@ importers:
         version: 1.2.7(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@react-three/drei':
         specifier: latest
-        version: 10.3.0(@react-three/fiber@9.1.2(@types/react@19.0.0)(expo-asset@11.1.5(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(expo-file-system@18.1.10(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0)))(expo-gl@15.1.6(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(immer@10.1.1)(react-dom@19.0.0(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)(three@0.177.0))(@types/react@19.0.0)(@types/three@0.177.0)(immer@10.1.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(three@0.177.0)
+        version: 10.3.0(c417c5a7f24f72dc57e4cd8e1bdca1cd)
       '@react-three/fiber':
         specifier: latest
         version: 9.1.2(@types/react@19.0.0)(expo-asset@11.1.5(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(expo-file-system@18.1.10(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0)))(expo-gl@15.1.6(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(immer@10.1.1)(react-dom@19.0.0(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)(three@0.177.0)
@@ -180,7 +180,7 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
       three:
-        specifier: ^0.177.0
+        specifier: latest
         version: 0.177.0
       vaul:
         specifier: latest
@@ -6675,8 +6675,8 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.0.0
 
-  ? '@react-three/drei@10.3.0(@react-three/fiber@9.1.2(@types/react@19.0.0)(expo-asset@11.1.5(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(expo-file-system@18.1.10(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0)))(expo-gl@15.1.6(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(expo@53.0.13(@babel/core@7.27.7)(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0))(immer@10.1.1)(react-dom@19.0.0(react@19.0.0))(react-native@0.80.0(@babel/core@7.27.7)(@types/react@19.0.0)(react@19.0.0))(react@19.0.0)(three@0.177.0))(@types/react@19.0.0)(@types/three@0.177.0)(immer@10.1.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(three@0.177.0)'
-  : dependencies:
+  '@react-three/drei@10.3.0(c417c5a7f24f72dc57e4cd8e1bdca1cd)':
+    dependencies:
       '@babel/runtime': 7.27.6
       '@mediapipe/tasks-vision': 0.10.17
       '@monogrid/gainmap-js': 3.1.0(three@0.177.0)
