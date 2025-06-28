@@ -274,7 +274,7 @@ export default function Component() {
               ) : (
                 <div className="flex items-center gap-3">
                   <Upload className="h-6 w-6" />
-                  <span>画像をアップロードしてクッキー型を作成</span>
+                  <span>画像アップロード</span>
                 </div>
               )}
             </Button>
