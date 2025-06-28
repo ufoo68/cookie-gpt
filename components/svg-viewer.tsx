@@ -107,4 +107,3 @@ export default function SVGViewer({ svgContent, onDownload }: SVGViewerProps) {
     </Card>
   );
 }
-
