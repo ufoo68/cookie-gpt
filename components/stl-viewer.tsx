@@ -29,23 +29,32 @@ export default function STLViewer({ stlContent }: STLViewerProps) {
       </CardHeader>
       <CardContent>
         <div className="bg-white border border-purple-200 rounded-lg p-4">
-          <div className="flex items-center justify-center min-h-[120px] bg-gray-50 rounded border">
+          <div className="flex items-center justify-center min-h-[200px] bg-gradient-to-br from-purple-50 to-blue-50 rounded border">
             <div className="text-center text-gray-600">
-              <div className="text-4xl mb-2">🏗️</div>
-              <p className="text-sm">STL 3Dモデル</p>
-              <p className="text-xs text-gray-500">3Dプリンター対応</p>
+              <div className="text-6xl mb-4">🏗️</div>
+              <p className="text-lg font-medium">STL 3Dモデル</p>
+              <p className="text-sm text-gray-500">3Dプリンター対応</p>
+              <div className="mt-4 space-y-2">
+                <div className="w-16 h-2 bg-purple-200 rounded mx-auto"></div>
+                <div className="w-12 h-2 bg-purple-300 rounded mx-auto"></div>
+                <div className="w-20 h-2 bg-purple-200 rounded mx-auto"></div>
+              </div>
             </div>
           </div>
         </div>
         {isExpanded && (
           <div className="mt-3">
-            <div className="text-xs text-gray-600 mb-2">STLデータ（先頭100文字）:</div>
-            <pre className="text-xs bg-gray-100 p-3 rounded border overflow-x-auto max-h-40">
-              <code>{stlContent.substring(0, 100)}...</code>
+            <div className="text-xs text-gray-600 mb-2">STLデータ（先頭200文字）:</div>
+            <pre className="text-xs bg-gray-100 p-3 rounded border overflow-x-auto max-h-40 font-mono">
+              <code>{stlContent.substring(0, 200)}...</code>
             </pre>
+            <div className="mt-2 text-xs text-gray-500">ファイルサイズ: {(stlContent.length / 1024).toFixed(1)} KB</div>
           </div>
         )}
-        <div className="text-xs text-gray-500 mt-2">3Dプリンター用STLファイルです</div>
+        <div className="text-xs text-gray-500 mt-2 flex items-center justify-between">
+          <span>3Dプリンター用STLファイル</span>
+          <span className="text-purple-600 font-medium">✓ 修正可能</span>
+        </div>
       </CardContent>
     </Card>
   )
