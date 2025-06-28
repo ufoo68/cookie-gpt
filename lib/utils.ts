@@ -11,12 +11,15 @@ export function sanitizeSvg(rawSvg: string): string {
 
   // It might also return a JSON-encoded string with escaped quotes.
   // A simple replacement is the most robust way to handle this.
-  svg = svg.replace(/\\"/g, '"');
+  svg = svg.replace(/\\"/g, '"').replace(/\\'/g, "'");
 
   // It might also be wrapped in a single pair of quotes.
   if ((svg.startsWith('"') && svg.endsWith('"')) || (svg.startsWith("'") && svg.endsWith("'"))) {
     svg = svg.substring(1, svg.length - 1);
   }
+
+  // Remove style attribute from the root <svg> tag
+  svg = svg.replace(/<svg([^>]*)style=["'][^"']*["']([^>]*)>/, '<svg$1$2>');
 
   return svg;
 }
