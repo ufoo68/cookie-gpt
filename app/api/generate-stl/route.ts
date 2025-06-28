@@ -11,9 +11,15 @@ export async function POST(request: NextRequest) {
     // Simulate MCP STL conversion with processing time
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
+    // Generate a mock STL file URL (in real implementation, this would be the actual STL file)
     const stlUrl = `/api/download/cookie-${Date.now()}.stl`
     const stlSize = "2.3 MB"
     const processingTime = "2.1秒"
+
+    // In a real implementation, you would:
+    // 1. Convert SVG to 3D geometry
+    // 2. Generate STL file
+    // 3. Store the file and return the URL
 
     return NextResponse.json({
       success: true,

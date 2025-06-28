@@ -1,94 +1,38 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Eye, EyeOff } from "lucide-react";
-import { sanitizeSvg } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface SVGViewerProps {
-  svgContent: string;
-  onDownload?: () => void;
+  svgContent: string
 }
 
-export default function SVGViewer({ svgContent, onDownload }: SVGViewerProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [dataUrl, setDataUrl] = useState("");
-  const [sanitizedContent, setSanitizedContent] = useState("");
-
-  useEffect(() => {
-    const sanitized = sanitizeSvg(svgContent);
-    setSanitizedContent(sanitized);
-    const blob = new Blob([sanitized], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    setDataUrl(url);
-
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [svgContent]);
-
-  const handleDownload = () => {
-    const blob = new Blob([sanitizedContent], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "cookie-cutter.svg";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    onDownload?.();
-  };
+export default function SVGViewer({ svgContent }: SVGViewerProps) {
+  // Create a data URL for the SVG
+  const svgDataUrl = `data:image/svg+xml;base64,${btoa(svgContent)}`
 
   return (
-    <Card className="border-amber-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm text-amber-800 flex items-center gap-2">🎨 SVGプレビュー</CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="border-amber-300 text-amber-700 hover:bg-amber-50"
-            >
-              {isExpanded ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="border-amber-300 text-amber-700 hover:bg-amber-50 bg-transparent"
-              disabled={!sanitizedContent}
-            >
-              <Download className="h-4 w-4 mr-1" />
-              SVG
-            </Button>
-          </div>
-        </div>
+    <Card className="border-purple-200">
+      <CardHeader>
+        <CardTitle className="text-sm text-purple-800 flex items-center gap-2">🎨 SVGプレビュー</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-white border border-amber-200 rounded-lg p-4">
-          <div className="w-full h-32 flex items-center justify-center bg-gray-50 rounded border overflow-hidden">
-            {dataUrl && (
-              <img
-                src={dataUrl}
-                alt="SVG Preview"
-                className="max-w-full max-h-full"
-              />
-            )}
+        <div className="bg-white border border-purple-200 rounded-lg p-4 overflow-hidden">
+          <div className="flex items-center justify-center min-h-[200px]">
+            <img
+              src={svgDataUrl || "/placeholder.svg"}
+              alt="Generated SVG"
+              className="max-w-full max-h-full object-contain"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "300px",
+                width: "auto",
+                height: "auto",
+              }}
+            />
           </div>
         </div>
-        {isExpanded && (
-          <div className="mt-3">
-            <div className="text-xs text-gray-600 mb-2">SVGコード:</div>
-            <pre className="text-xs bg-gray-100 p-3 rounded border overflow-x-auto max-h-40">
-              <code>{sanitizedContent}</code>
-            </pre>
-          </div>
-        )}
+        <div className="text-xs text-gray-500 mt-2">生成されたSVGイラストです</div>
       </CardContent>
     </Card>
-  );
+  )
 }
