@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "cookieGPT",
   },
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export const viewport: Viewport = {

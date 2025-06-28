@@ -9,9 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: "#FEF3C7",
     theme_color: "#F59E0B",
-    orientation: "portrait",
-    categories: ["food", "productivity", "utilities"],
-    lang: "ja",
+    orientation: "portrait-primary",
     icons: [
       {
         src: "/icon-192x192.png",
@@ -31,6 +29,10 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
     ],
+    categories: ["productivity", "utilities", "design"],
+    lang: "ja",
+    dir: "ltr",
+    scope: "/",
     screenshots: [
       {
         src: "/screenshot-mobile.png",
@@ -43,6 +45,20 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "1280x720",
         type: "image/png",
         form_factor: "wide",
+      },
+    ],
+    shortcuts: [
+      {
+        name: "新しいクッキー型を作成",
+        short_name: "新規作成",
+        description: "画像をアップロードして新しいクッキー型を作成",
+        url: "/",
+        icons: [
+          {
+            src: "/icon-192x192.png",
+            sizes: "192x192",
+          },
+        ],
       },
     ],
   }

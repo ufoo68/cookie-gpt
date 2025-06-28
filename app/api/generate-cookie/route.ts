@@ -1,23 +1,25 @@
-import { openai } from "@ai-sdk/openai"
+import { type NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
+import { openai } from "@ai-sdk/openai"
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const image = formData.get("image") as File
+    const file = formData.get("image") as File
 
-    if (!image) {
-      return Response.json({ error: "No image provided" }, { status: 400 })
+    if (!file) {
+      return NextResponse.json({ success: false, message: "画像ファイルが見つかりません" }, { status: 400 })
     }
 
-    // Convert image to base64
-    const bytes = await image.arrayBuffer()
+    // Convert file to base64
+    const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const base64 = buffer.toString("base64")
-    const imageUrl = `data:${image.type};base64,${base64}`
+    const mimeType = file.type
+    const dataUrl = `data:${mimeType};base64,${base64}`
 
-    // Step 1: GPT-4o generates SVG from image
-    const { text: svgResult } = await generateText({
+    // Analyze image with GPT-4o
+    const { text: analysis } = await generateText({
       model: openai("gpt-4o"),
       messages: [
         {
@@ -25,83 +27,60 @@ export async function POST(request: Request) {
           content: [
             {
               type: "text",
-              text: `この画像を分析して、クッキー型として使えるSVGパスを生成してください。以下の要件に従ってください：
-
-要件:
-1. シンプルで切り抜きやすい形状にする
-2. 細かすぎる詳細は省略する
-3. クッキー型として実用的なサイズ（100x100mm程度）
-4. SVGのpathタグのみを出力する
-5. viewBox="0 0 100 100"で統一する
-6. 形状は閉じたパスにする
-
-出力形式:
-\`\`\`svg
-<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <path d="..." fill="none" stroke="black" stroke-width="1"/>
-</svg>
-\`\`\`
-
-分析内容も含めて回答してください。`,
+              text: "この画像を分析して、クッキー型として適した形状を特定してください。主要な形状、色、特徴を詳しく説明し、クッキー型として最適化するための提案をしてください。",
             },
             {
               type: "image",
-              image: imageUrl,
+              image: dataUrl,
             },
           ],
         },
       ],
     })
 
-    // Extract SVG from the response
-    const svgMatch = svgResult.match(/```svg\n([\s\S]*?)\n```/)
-    const svgContent = svgMatch ? svgMatch[1] : null
-
-    if (!svgContent) {
-      return Response.json(
+    // Generate SVG based on analysis
+    const { text: svgContent } = await generateText({
+      model: openai("gpt-4o"),
+      messages: [
         {
-          error: "Failed to generate SVG",
-          message: "SVGの生成に失敗しました。画像を確認してもう一度お試しください。",
-          analysis: svgResult,
+          role: "user",
+          content: `以下の画像分析結果に基づいて、クッキー型用のSVGファイルを生成してください：
+
+${analysis}
+
+要件：
+- シンプルで明確な輪郭
+- クッキー型として実用的
+- 3Dプリント可能な形状
+- SVGコードのみを出力（説明文は不要）
+- viewBox="0 0 100 100"を使用
+- strokeとfillを適切に設定`,
         },
-        { status: 400 },
-      )
-    }
+      ],
+    })
 
-    // Step 2: Call MCP service to convert SVG to STL
-    // This would be replaced with actual MCP integration
-    const mcpResponse = await callMCPService(svgContent)
+    // Simulate MCP STL conversion
+    const stlUrl = `/api/download/cookie-${Date.now()}.stl`
+    const stlSize = "2.3 MB"
+    const processingTime = "3.2秒"
 
-    return Response.json({
+    return NextResponse.json({
       success: true,
-      message: "クッキー型が完成しました！🍪",
-      analysis: svgResult,
-      svgContent: svgContent,
-      stlUrl: mcpResponse.stlUrl,
-      stlSize: mcpResponse.stlSize,
-      processingTime: mcpResponse.processingTime,
+      analysis,
+      svgContent: svgContent.replace(/```svg\n?|\n?```/g, "").trim(),
+      stlUrl,
+      stlSize,
+      processingTime,
     })
   } catch (error) {
-    console.error("Error generating cookie cutter:", error)
-    return Response.json(
+    console.error("Error generating cookie:", error)
+    return NextResponse.json(
       {
-        error: "Failed to generate cookie cutter",
-        message: "クッキー型の生成に失敗しました。もう一度お試しください。",
+        success: false,
+        message: "クッキー型の生成中にエラーが発生しました",
+        analysis: "エラーが発生したため、分析を完了できませんでした。",
       },
       { status: 500 },
     )
-  }
-}
-
-// Mock MCP service call - replace with actual MCP integration
-async function callMCPService(svgContent: string) {
-  // Simulate MCP processing time
-  await new Promise((resolve) => setTimeout(resolve, 2000))
-
-  // Mock response - in real implementation, this would call MCP
-  return {
-    stlUrl: `/api/download/cookie-${Date.now()}.stl`,
-    stlSize: "2.3 MB",
-    processingTime: "2.1s",
   }
 }
