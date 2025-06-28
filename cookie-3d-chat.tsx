@@ -24,7 +24,7 @@ interface Message {
   isMe: boolean
   isLoading?: boolean
   stage?: "svg_generated" | "svg_modified" | "stl_generated"
-  showStlViewer?: boolean // Add this line
+  showStlViewer?: boolean
 }
 
 export default function Cookie3DChat() {
@@ -33,7 +33,7 @@ export default function Cookie3DChat() {
       id: 1,
       type: "text",
       content:
-        "こんにちは！🍪✨\n\n新しいワークフローでクッキー型を作成します：\n1️⃣ GPT-4oがイラストからSVG形状を生成\n2️⃣ あなたがSVGを確認・修正指示\n3️⃣ 修正後にMCPサービスでSTL変換\n4️⃣ 最終的なファイルをダウンロード\n\n画像をアップロードして始めましょう！🚀",
+        "こんにちは！🍪✨\n\n新しいワークフローでクッキー型を作成します：\n1️⃣ GPT-4oがイラストからSVG形状を生成\n2️⃣ あなたがSVGを確認・修正指示\n3️⃣ 修正後にMCPサービスでSTL変換\n4️⃣ 最終的なファイルをダウンロード\n\n画像、SVG、STLファイルをアップロードして始めましょう！🚀",
       time: "14:30",
       isMe: false,
     },
@@ -45,7 +45,76 @@ export default function Cookie3DChat() {
   const [currentStage, setCurrentStage] = useState<"initial" | "svg_ready" | "stl_ready">("initial")
   const [userInput, setUserInput] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const svgInputRef = useRef<HTMLInputElement>(null)
+  const stlInputRef = useRef<HTMLInputElement>(null)
   const isMobile = useIsMobile()
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const fileType = file.type
+    const fileName = file.name.toLowerCase()
+
+    // SVGファイルの処理
+    if (fileType === "image/svg+xml" || fileName.endsWith(".svg")) {
+      const svgContent = await file.text()
+
+      // SVGファイルメッセージを追加
+      const svgFileMessage: Message = {
+        id: Date.now(),
+        type: "svg",
+        content:
+          "📐 SVGファイルをアップロードしました！\n\n確認して、修正が必要でしたらお知らせください。\n問題なければ「STL変換」ボタンを押してください。",
+        svgContent: svgContent,
+        time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+        isMe: true,
+        stage: "svg_generated",
+      }
+      setMessages((prev) => [...prev, svgFileMessage])
+      setCurrentSvg(svgContent)
+      setCurrentStage("svg_ready")
+      return
+    }
+
+    // STLファイルの処理
+    if (fileName.endsWith(".stl")) {
+      const stlContent = await file.text()
+
+      // STLファイルメッセージを追加
+      const stlFileMessage: Message = {
+        id: Date.now(),
+        type: "stl",
+        content: "🏗️ STLファイルをアップロードしました！\n\n3Dプレビューとダウンロードが利用できます。",
+        stlContent: stlContent,
+        stlSize: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+        time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+        isMe: true,
+        stage: "stl_generated",
+        showStlViewer: true,
+      }
+      setMessages((prev) => [...prev, stlFileMessage])
+      setCurrentStage("stl_ready")
+      return
+    }
+
+    // 画像ファイルの処理（既存のロジック）
+    if (fileType.startsWith("image/")) {
+      await handleImageUpload(event)
+      return
+    }
+
+    // サポートされていないファイル形式
+    const errorMessage: Message = {
+      id: Date.now(),
+      type: "text",
+      content:
+        "❌ サポートされていないファイル形式です。\n\n対応形式：\n• 画像ファイル（JPG, PNG, GIF, WebP）\n• SVGファイル（.svg）\n• STLファイル（.stl）",
+      time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+      isMe: false,
+    }
+    setMessages((prev) => [...prev, errorMessage])
+  }
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -272,7 +341,7 @@ export default function Cookie3DChat() {
           time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
           isMe: false,
           stage: "stl_generated",
-          showStlViewer: true, // STLビューアを表示
+          showStlViewer: true,
         }
         setMessages((prev) => [...prev, stlMessage])
       } else {
@@ -456,25 +525,44 @@ export default function Cookie3DChat() {
         {/* Mobile Input */}
         <div className="p-4 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300">
           {currentStage === "initial" ? (
-            <div className="bg-white rounded-full p-3 shadow-lg border-2 border-amber-200">
-              <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
-              <Button
-                className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-md rounded-full py-4 text-lg font-medium"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <div className="flex items-center gap-3">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <span>AI処理中...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <Upload className="h-6 w-6" />
-                    <span>画像アップロード</span>
-                  </div>
-                )}
-              </Button>
+            <div className="space-y-3">
+              {/* 画像アップロード */}
+              <div className="bg-white rounded-full p-3 shadow-lg border-2 border-amber-200">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*,.svg,.stl"
+                  className="hidden"
+                />
+                <Button
+                  className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-md rounded-full py-4 text-lg font-medium"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <span>AI処理中...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <Upload className="h-6 w-6" />
+                      <span>ファイルアップロード</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
+
+              {/* ファイル形式の説明 */}
+              <div className="bg-white/80 rounded-lg p-3 text-center">
+                <p className="text-xs text-amber-800 font-medium">対応形式</p>
+                <div className="flex justify-center gap-4 mt-2 text-xs text-amber-700">
+                  <span>📷 画像</span>
+                  <span>📐 SVG</span>
+                  <span>🏗️ STL</span>
+                </div>
+              </div>
             </div>
           ) : currentStage === "svg_ready" ? (
             <div className="flex gap-2 bg-white rounded-full p-2 shadow-lg border-2 border-amber-200">
@@ -589,6 +677,24 @@ export default function Cookie3DChat() {
               <li>• MCP外部連携</li>
             </ul>
           </div>
+
+          <div className="p-4 bg-white rounded-xl shadow-md border-2 border-amber-200">
+            <h3 className="font-semibold text-amber-900 mb-3">📁 対応ファイル</h3>
+            <div className="space-y-2 text-sm text-amber-800">
+              <div className="flex items-center gap-2">
+                <span className="text-blue-500">📷</span>
+                <span>画像ファイル（JPG, PNG, GIF, WebP）</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-green-500">📐</span>
+                <span>SVGファイル（.svg）</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-purple-500">🏗️</span>
+                <span>STLファイル（.stl）</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -682,12 +788,12 @@ export default function Cookie3DChat() {
         <div className="p-6 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300">
           <div className="max-w-2xl mx-auto">
             {currentStage === "initial" ? (
-              <>
+              <div className="space-y-4">
                 <input
                   type="file"
                   ref={fileInputRef}
-                  onChange={handleImageUpload}
-                  accept="image/*"
+                  onChange={handleFileUpload}
+                  accept="image/*,.svg,.stl"
                   className="hidden"
                 />
                 <Button
@@ -703,11 +809,30 @@ export default function Cookie3DChat() {
                   ) : (
                     <div className="flex items-center gap-4">
                       <Upload className="h-8 w-8" />
-                      <span>クッキー型を作成</span>
+                      <span>ファイルをアップロード</span>
                     </div>
                   )}
                 </Button>
-              </>
+
+                {/* ファイル形式の説明 */}
+                <div className="bg-white/80 rounded-lg p-4 text-center">
+                  <p className="text-sm text-amber-800 font-medium mb-3">対応ファイル形式</p>
+                  <div className="flex justify-center gap-6 text-sm text-amber-700">
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-500">📷</span>
+                      <span>画像ファイル</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-500">📐</span>
+                      <span>SVGファイル</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-purple-500">🏗️</span>
+                      <span>STLファイル</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : currentStage === "svg_ready" ? (
               <div className="flex gap-3 bg-white rounded-full p-3 shadow-lg border-2 border-amber-200">
                 <Input
