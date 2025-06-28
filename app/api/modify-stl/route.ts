@@ -23,6 +23,17 @@ const stlModifierAgent = new Agent({
   }),
 });
 
+const createStlModificationPrompt = (
+  stlContent: string,
+  userRequest: string
+) => `以下のSTLデータを、ユーザーの修正指示に従って修正してください：
+
+現在のSTL:
+${stlContent}
+
+ユーザーの修正指示:
+${userRequest}`;
+
 export async function POST(request: NextRequest) {
   try {
     const { stlContent, userRequest } = await request.json();
@@ -39,13 +50,7 @@ export async function POST(request: NextRequest) {
     const result = await runner.run(stlModifierAgent, [
       {
         role: "user",
-        content: `以下のSTLデータを、ユーザーの修正指示に従って修正してください：
-
-現在のSTL:
-${stlContent}
-
-ユーザーの修正指示:
-${userRequest}`,
+        content: createStlModificationPrompt(stlContent, userRequest),
       },
     ]);
 

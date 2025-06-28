@@ -344,7 +344,7 @@ export default function Cookie3DChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           stlContent: currentStl,
-          modificationRequest: currentInput,
+          userRequest: currentInput,
         }),
       })
 
