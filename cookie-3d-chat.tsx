@@ -145,7 +145,7 @@ export default function Component() {
                 🍪
               </div>
               <div>
-                <h1 className="font-bold text-amber-900 text-lg">AI クッキー工房</h1>
+                <h1 className="font-bold text-amber-900 text-lg">cookieGPT</h1>
                 <p className="text-amber-800 text-sm">GPT→SVG→MCP→STL</p>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function Component() {
           <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)}>
             <div className="absolute right-0 top-0 h-full w-80 bg-gradient-to-b from-amber-100 to-orange-100 p-4 shadow-xl">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-amber-900">ワークフロー</h2>
+                <h2 className="text-xl font-bold text-amber-900">cookieGPT</h2>
                 <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
                   <X className="h-6 w-6 text-amber-900" />
                 </Button>
@@ -295,7 +295,7 @@ export default function Component() {
               🍪
             </div>
             <div>
-              <h1 className="font-bold text-amber-900 text-xl">AI クッキー工房</h1>
+              <h1 className="font-bold text-amber-900 text-xl">cookieGPT</h1>
               <p className="text-amber-800 text-sm">GPT→SVG→MCP→STL</p>
             </div>
           </div>
@@ -365,7 +365,7 @@ export default function Component() {
         <div className="bg-gradient-to-r from-amber-300 to-orange-300 p-6 shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-amber-900 text-2xl">クッキー型生成チャット</h2>
+              <h2 className="font-bold text-amber-900 text-2xl">cookieGPT</h2>
               <p className="text-amber-800">画像→SVG→STL の自動変換ワークフロー</p>
             </div>
             <div className="flex items-center gap-2 text-amber-900">
