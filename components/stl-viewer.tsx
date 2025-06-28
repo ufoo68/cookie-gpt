@@ -1,35 +1,45 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Eye, EyeOff, Download, CuboidIcon as Cube } from "lucide-react"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Download, ChevronDown, ChevronUp, Box, Layers, FileText, CheckCircle } from "lucide-react"
 
 interface STLViewerProps {
   stlContent: string
+  className?: string
 }
 
-export default function STLViewer({ stlContent }: STLViewerProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+export default function STLViewer({ stlContent, className = "" }: STLViewerProps) {
+  const [showDetails, setShowDetails] = useState(false)
 
-  // Parse basic STL info
-  const getSTLInfo = (content: string) => {
+  // STLファイルの基本解析
+  const analyzeSTL = (content: string) => {
     const lines = content.split("\n")
     const triangleCount = lines.filter((line) => line.trim().startsWith("facet normal")).length
-    const vertices = triangleCount * 3
-    const fileSize = (content.length / 1024).toFixed(1)
+    const vertexCount = triangleCount * 3
+    const fileSize = new Blob([content]).size
+    const isBinary = content.includes("\0") || !content.includes("facet normal")
 
-    return { triangleCount, vertices, fileSize }
+    return {
+      triangles: triangleCount,
+      vertices: vertexCount,
+      fileSize,
+      format: isBinary ? "Binary STL" : "ASCII STL",
+      isManifold: triangleCount > 0,
+      isWatertight: triangleCount > 0,
+    }
   }
 
-  const stlInfo = getSTLInfo(stlContent)
+  const stats = analyzeSTL(stlContent)
 
-  const handleDownload = () => {
-    const blob = new Blob([stlContent], { type: "application/octet-stream" })
+  const downloadSTL = () => {
+    const blob = new Blob([stlContent], { type: "application/sla" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `cookie-design-${Date.now()}.stl`
+    a.download = `cookie-cutter-${Date.now()}.stl`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -37,118 +47,124 @@ export default function STLViewer({ stlContent }: STLViewerProps) {
   }
 
   return (
-    <Card className="border-purple-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm text-purple-800 flex items-center gap-2">
-            <Cube className="h-4 w-4" />
-            STL 3Dモデル
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="border-purple-300 text-purple-700 hover:bg-purple-50 bg-transparent"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="border-purple-300 text-purple-700 hover:bg-purple-50"
-            >
-              {isExpanded ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
+    <Card className={`w-full max-w-md mx-auto ${className}`}>
+      <CardContent className="p-6">
+        {/* 3D Cookie Preview */}
+        <div className="relative mb-6">
+          <div className="w-full h-48 bg-gradient-to-br from-amber-100 to-orange-200 rounded-xl flex items-center justify-center shadow-inner">
+            <div className="relative">
+              {/* 3D Cookie Representation */}
+              <div className="w-24 h-24 bg-gradient-to-br from-amber-300 to-orange-400 rounded-full shadow-lg transform rotate-3 relative">
+                <div className="absolute inset-2 bg-gradient-to-br from-amber-200 to-orange-300 rounded-full shadow-inner">
+                  <div className="absolute inset-3 bg-gradient-to-br from-amber-100 to-orange-200 rounded-full">
+                    <div className="w-full h-full flex items-center justify-center text-2xl">🍪</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Info Badges */}
+              <div className="absolute -top-2 -right-2">
+                <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  3D Ready
+                </Badge>
+              </div>
+
+              <div className="absolute -bottom-2 -left-2">
+                <Badge variant="outline" className="bg-white text-xs">
+                  <Box className="w-3 h-3 mr-1" />
+                  STL
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg p-2">
+            <div className="flex justify-between text-xs text-gray-600">
+              <span className="flex items-center gap-1">
+                <Layers className="w-3 h-3" />
+                {stats.triangles.toLocaleString()} triangles
+              </span>
+              <span className="flex items-center gap-1">
+                <FileText className="w-3 h-3" />
+                {(stats.fileSize / 1024).toFixed(1)} KB
+              </span>
+            </div>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="bg-white border border-purple-200 rounded-lg p-4">
-          <div className="flex items-center justify-center min-h-[300px] bg-gradient-to-br from-purple-50 to-blue-50 rounded border relative overflow-hidden">
-            {/* 3D Visualization Placeholder */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center text-gray-600">
-                <div className="relative">
-                  {/* 3D Cookie Shape Visualization */}
-                  <div className="w-32 h-32 mx-auto mb-4 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-200 to-amber-400 rounded-full shadow-lg transform rotate-3"></div>
-                    <div className="absolute inset-2 bg-gradient-to-br from-amber-300 to-amber-500 rounded-full shadow-inner"></div>
-                    <div className="absolute inset-4 bg-gradient-to-br from-amber-100 to-amber-300 rounded-full"></div>
-                    {/* Cookie details */}
-                    <div className="absolute top-6 left-8 w-3 h-3 bg-amber-600 rounded-full"></div>
-                    <div className="absolute top-10 right-6 w-2 h-2 bg-amber-600 rounded-full"></div>
-                    <div className="absolute bottom-8 left-6 w-2 h-2 bg-amber-600 rounded-full"></div>
-                    <div className="absolute bottom-6 right-8 w-3 h-3 bg-amber-600 rounded-full"></div>
-                  </div>
-                  <p className="text-lg font-medium text-purple-800">3D Cookie Model</p>
-                  <p className="text-sm text-gray-500">Ready for 3D Printing</p>
+
+        {/* Action Buttons */}
+        <div className="space-y-3 mb-4">
+          <Button onClick={downloadSTL} className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+            <Download className="w-4 h-4 mr-2" />
+            STLファイルをダウンロード
+          </Button>
+
+          <Button variant="outline" onClick={() => setShowDetails(!showDetails)} className="w-full">
+            {showDetails ? (
+              <>
+                <ChevronUp className="w-4 h-4 mr-2" />
+                詳細を非表示
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-2" />
+                詳細を表示
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Detailed Information */}
+        {showDetails && (
+          <div className="space-y-3 pt-3 border-t border-gray-200">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">三角形数:</span>
+                  <span className="font-medium">{stats.triangles.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">頂点数:</span>
+                  <span className="font-medium">{stats.vertices.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">ファイルサイズ:</span>
+                  <span className="font-medium">{(stats.fileSize / 1024).toFixed(1)} KB</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">形式:</span>
+                  <span className="font-medium">{stats.format}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">多様体:</span>
+                  <span className={`font-medium ${stats.isManifold ? "text-green-600" : "text-red-600"}`}>
+                    {stats.isManifold ? "✓" : "✗"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">水密:</span>
+                  <span className={`font-medium ${stats.isWatertight ? "text-green-600" : "text-red-600"}`}>
+                    {stats.isWatertight ? "✓" : "✗"}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Floating info badges */}
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 text-xs font-medium text-purple-700 border border-purple-200">
-              {stlInfo.triangleCount} triangles
-            </div>
-            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 text-xs font-medium text-purple-700 border border-purple-200">
-              {stlInfo.fileSize} KB
-            </div>
-            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 text-xs font-medium text-green-700 border border-green-200">
-              ✓ Print Ready
-            </div>
-          </div>
-        </div>
-
-        {/* STL Statistics */}
-        <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-          <div className="bg-purple-50 rounded-lg p-3">
-            <div className="text-lg font-bold text-purple-800">{stlInfo.triangleCount}</div>
-            <div className="text-xs text-purple-600">Triangles</div>
-          </div>
-          <div className="bg-blue-50 rounded-lg p-3">
-            <div className="text-lg font-bold text-blue-800">{stlInfo.vertices}</div>
-            <div className="text-xs text-blue-600">Vertices</div>
-          </div>
-          <div className="bg-green-50 rounded-lg p-3">
-            <div className="text-lg font-bold text-green-800">{stlInfo.fileSize}</div>
-            <div className="text-xs text-green-600">KB</div>
-          </div>
-        </div>
-
-        {isExpanded && (
-          <div className="mt-4 space-y-3">
-            <div className="text-xs text-gray-600 mb-2">STL Header Information:</div>
-            <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Format:</span>
-                <span className="font-medium">STL Binary/ASCII</span>
+            {/* Print Readiness */}
+            <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-2 text-green-800">
+                <CheckCircle className="w-4 h-4" />
+                <span className="font-medium text-sm">3Dプリント対応</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">3D Print Ready:</span>
-                <span className="font-medium text-green-600">✓ Yes</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Manifold:</span>
-                <span className="font-medium text-green-600">✓ Watertight</span>
-              </div>
+              <p className="text-xs text-green-700 mt-1">このSTLファイルは3Dプリンタで印刷可能です</p>
             </div>
-
-            <div className="text-xs text-gray-600 mb-2">STL Data Preview:</div>
-            <pre className="text-xs bg-gray-100 p-3 rounded border overflow-x-auto max-h-32 font-mono">
-              <code>{stlContent.substring(0, 300)}...</code>
-            </pre>
           </div>
         )}
-
-        <div className="text-xs text-gray-500 mt-3 flex items-center justify-between">
-          <span className="flex items-center gap-1">
-            <Cube className="h-3 w-3" />
-            3D Printer Compatible
-          </span>
-          <span className="text-purple-600 font-medium">✓ Modification Ready</span>
-        </div>
       </CardContent>
     </Card>
   )

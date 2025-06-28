@@ -489,9 +489,9 @@ export default function Cookie3DChat() {
   // Mobile Layout
   if (isMobile) {
     return (
-      <div className="h-screen bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col">
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col">
         {/* Mobile Header */}
-        <div className="bg-gradient-to-r from-amber-300 to-orange-300 p-4 shadow-lg">
+        <div className="bg-gradient-to-r from-amber-300 to-orange-300 p-4 shadow-lg flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-xl shadow-md">
@@ -516,7 +516,7 @@ export default function Cookie3DChat() {
         {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)}>
-            <div className="absolute right-0 top-0 h-full w-80 bg-gradient-to-b from-amber-100 to-orange-100 p-4 shadow-xl">
+            <div className="absolute right-0 top-0 h-full w-80 bg-gradient-to-b from-amber-100 to-orange-100 p-4 shadow-xl overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-amber-900">cookieGPT</h2>
                 <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
@@ -567,8 +567,8 @@ export default function Cookie3DChat() {
           </div>
         )}
 
-        {/* Mobile Messages */}
-        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+        {/* Mobile Messages - フレックスで残りの高さを使用 */}
+        <div className="flex-1 p-4 space-y-4 overflow-y-auto min-h-0">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-3 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}>
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-lg shadow-md border-2 border-amber-200 flex-shrink-0">
@@ -647,8 +647,8 @@ export default function Cookie3DChat() {
           ))}
         </div>
 
-        {/* Mobile Input */}
-        <div className="p-4 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300">
+        {/* Mobile Input - 固定位置 */}
+        <div className="p-4 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300 flex-shrink-0">
           {currentStage === "initial" || currentStage === "stl_final" ? (
             <div className="space-y-3">
               {/* ファイルアップロード */}
@@ -720,9 +720,9 @@ export default function Cookie3DChat() {
 
   // Desktop Layout
   return (
-    <div className="h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex">
-      {/* Desktop Sidebar */}
-      <div className="w-80 bg-gradient-to-b from-amber-100 to-orange-100 border-r-4 border-amber-200 shadow-xl">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex">
+      {/* Desktop Sidebar - 固定幅 */}
+      <div className="w-80 bg-gradient-to-b from-amber-100 to-orange-100 border-r-4 border-amber-200 shadow-xl flex-shrink-0 overflow-y-auto">
         <div className="p-6 border-b-2 border-amber-200">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-lg">
@@ -832,10 +832,10 @@ export default function Cookie3DChat() {
         </div>
       </div>
 
-      {/* Desktop Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Desktop Header */}
-        <div className="bg-gradient-to-r from-amber-300 to-orange-300 p-6 shadow-lg">
+      {/* Desktop Main Chat Area - フレックスで残りの幅を使用 */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Desktop Header - 固定位置 */}
+        <div className="bg-gradient-to-r from-amber-300 to-orange-300 p-6 shadow-lg flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-amber-900 text-2xl">cookieGPT</h2>
@@ -848,8 +848,8 @@ export default function Cookie3DChat() {
           </div>
         </div>
 
-        {/* Desktop Messages */}
-        <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+        {/* Desktop Messages - フレックスで残りの高さを使用 */}
+        <div className="flex-1 p-6 space-y-6 overflow-y-auto min-h-0">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-4 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}>
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-xl shadow-lg border-2 border-amber-200 flex-shrink-0">
@@ -926,8 +926,8 @@ export default function Cookie3DChat() {
           ))}
         </div>
 
-        {/* Desktop Input */}
-        <div className="p-6 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300">
+        {/* Desktop Input - 固定位置 */}
+        <div className="p-6 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300 flex-shrink-0">
           <div className="max-w-2xl mx-auto">
             {currentStage === "initial" || currentStage === "stl_final" ? (
               <div className="space-y-4">
