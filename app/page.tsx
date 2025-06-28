@@ -1,5 +1,5 @@
-import Component from "../cookie-3d-chat"
+import Cookie3DChat from "@/cookie-3d-chat"
 
-export default function Page() {
-  return <Component />
+export default function Home() {
+  return <Cookie3DChat />
 }

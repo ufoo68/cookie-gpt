@@ -23,7 +23,7 @@ interface Message {
   isLoading?: boolean
 }
 
-export default function Component() {
+export default function Cookie3DChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -429,7 +429,7 @@ export default function Component() {
           <div className="max-w-2xl mx-auto">
             <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
             <Button
-              className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg rounded-full py-6 text-xl font-medium"
+              className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg rounded-full py-6 text-lg font-medium"
               onClick={() => fileInputRef.current?.click()}
               disabled={isGenerating}
             >
@@ -441,7 +441,7 @@ export default function Component() {
               ) : (
                 <div className="flex items-center gap-4">
                   <Upload className="h-8 w-8" />
-                  <span>画像をアップロードしてクッキー型を作成</span>
+                  <span>クッキー型を作成</span>
                 </div>
               )}
             </Button>
