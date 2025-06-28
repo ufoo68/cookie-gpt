@@ -6,7 +6,6 @@ import { OrbitControls, Environment, Sphere, Cylinder, Box, Torus } from "@react
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
-import * as THREE from "three"
 
 interface Cookie3DViewerProps {
   stlContent?: string
@@ -15,37 +14,16 @@ interface Cookie3DViewerProps {
 
 function STLModel({ url }: { url: string }) {
   // Mock STL model with more complex geometry to simulate real STL content
-  const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null)
+  const [geometry, setGeometry] = useState<any>(null)
 
   useEffect(() => {
     // Create a more complex procedural geometry that simulates STL complexity
     const createComplexCookieGeometry = () => {
-      const group = new THREE.Group()
-
-      // Base cookie shape with more detail
-      const baseGeometry = new THREE.CylinderGeometry(1.5, 1.5, 0.3, 32)
-      const baseMesh = new THREE.Mesh(baseGeometry)
-
-      // Add surface details to simulate STL complexity
-      const detailGeometry = new THREE.SphereGeometry(0.05, 8, 8)
-      for (let i = 0; i < 20; i++) {
-        const angle = (i / 20) * Math.PI * 2
-        const radius = 0.8 + Math.random() * 0.6
-        const x = Math.cos(angle) * radius
-        const z = Math.sin(angle) * radius
-        const y = 0.15 + Math.random() * 0.1
-
-        const detail = new THREE.Mesh(detailGeometry)
-        detail.position.set(x, y, z)
-        group.add(detail)
-      }
-
-      group.add(baseMesh)
-      return group
+      // This is a placeholder for actual STL loading
+      setGeometry(true)
     }
 
-    const complexGeometry = createComplexCookieGeometry()
-    setGeometry(complexGeometry as any)
+    createComplexCookieGeometry()
   }, [url])
 
   if (!geometry) return null

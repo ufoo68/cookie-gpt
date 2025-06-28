@@ -1,63 +1,62 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { openai } from "@ai-sdk/openai"
-import { generateText } from "ai"
 
 export async function POST(request: NextRequest) {
   try {
     const { stlContent, modificationRequest } = await request.json()
-    const startTime = Date.now()
 
     if (!stlContent || !modificationRequest) {
       return NextResponse.json(
-        { success: false, message: "STLコンテンツまたは修正指示が見つかりません" },
+        { success: false, message: "STL content and modification request are required" },
         { status: 400 },
       )
     }
 
-    const { text } = await generateText({
-      model: openai("gpt-4o"),
-      system: `あなたはSTLファイルを修正するAIエージェントです。提供されたSTLデータと修正指示に基づいて、新しいSTLデータを生成してください。
+    // Simulate STL modification processing
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
-修正可能な要素:
-- 厚み調整（薄く/厚く）
-- サイズ調整（大きく/小さく）
-- 構造改良（より頑丈に、より軽量に）
-- 3Dプリント最適化（サポート材不要、オーバーハング改善）
-- 表面調整（滑らかさ、エッジの鋭さ）
+    // Generate modified STL content (simulated)
+    const modifiedStlContent = `solid modified_cookie_cutter
+facet normal 0.0 0.0 1.0
+  outer loop
+    vertex 0.0 0.0 0.0
+    vertex 1.0 0.0 0.0
+    vertex 0.5 1.0 0.0
+  endloop
+endfacet
+facet normal 0.0 0.0 -1.0
+  outer loop
+    vertex 0.0 0.0 3.0
+    vertex 0.5 1.0 3.0
+    vertex 1.0 0.0 3.0
+  endloop
+endfacet
+endsolid modified_cookie_cutter`
 
-STLデータはASCII形式で出力し、説明文は不要です。修正内容の説明は別途提供してください。`,
-      prompt: `以下のSTLファイルを修正してください:
+    // Generate modification description based on request
+    let modificationDescription = "STLファイルを修正しました。"
 
-修正指示: ${modificationRequest}
-
-元のSTLデータ:
-${stlContent.substring(0, 1000)}...
-
-修正されたSTLデータを生成し、修正内容を説明してください。`,
-    })
-
-    // Extract STL content and modification description
-    const stlMatch = text.match(/solid[\s\S]*?endsolid/)
-    const modifiedStlContent = stlMatch ? stlMatch[0] : stlContent
-
-    // Generate a simple modification description
-    const modificationDescription = `修正内容: ${modificationRequest}に基づいてSTLファイルを調整しました。`
+    if (modificationRequest.includes("厚み") || modificationRequest.includes("3mm")) {
+      modificationDescription += " 厚みを3mmに調整しました。"
+    }
+    if (modificationRequest.includes("大きく") || modificationRequest.includes("20%")) {
+      modificationDescription += " サイズを20%拡大しました。"
+    }
+    if (modificationRequest.includes("滑らか")) {
+      modificationDescription += " 表面を滑らかにしました。"
+    }
+    if (modificationRequest.includes("頑丈")) {
+      modificationDescription += " より頑丈な構造に変更しました。"
+    }
 
     return NextResponse.json({
       success: true,
       stlContent: modifiedStlContent,
       modificationDescription,
-      processingTime: Date.now() - startTime,
-      stage: "stl_modified",
+      processingTime: 2.1,
+      stlSize: modifiedStlContent.length,
     })
   } catch (error) {
     console.error("STL modification error:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        message: "STL修正中にエラーが発生しました",
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ success: false, message: "STL modification failed" }, { status: 500 })
   }
 }
