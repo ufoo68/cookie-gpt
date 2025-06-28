@@ -1,62 +1,77 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server";
+import { Agent, Runner } from "@openai/agents";
+import { z } from "zod";
+
+const instructions = `
+あなたはSTLデータを修正するAIエージェントです。提供されたSTLデータとユーザーの修正指示に基づいて、STLデータを更新してください。
+STLデータはASCII形式で出力し、説明文は不要です。
+
+要件:
+- 入力されたSTLデータとユーザーの指示を正確に反映してください。
+- クッキー型として適切な構造を維持してください。
+- STLデータはASCII形式で出力してください。バイナリ形式は使用しないでください。
+- 出力はSTLデータのみとし、説明文や追加のテキストは含めないでください。
+- STLの単位はミリメートルを想定してください。
+`;
+
+const stlModifierAgent = new Agent({
+  name: "stl-modifier-agent",
+  model: "gpt-4o", // 幾何学的推論にはより高度なモデルが望ましい
+  instructions,
+  outputType: z.object({
+    modifiedStlContent: z.string().describe("修正されたSTLデータ (ASCII形式)"),
+  }),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const { stlContent, modificationRequest } = await request.json()
+    const { stlContent, userRequest } = await request.json();
 
-    if (!stlContent || !modificationRequest) {
+    if (!stlContent || !userRequest) {
       return NextResponse.json(
-        { success: false, message: "STL content and modification request are required" },
-        { status: 400 },
-      )
+        { success: false, message: "STLコンテンツまたは修正指示が見つかりません" },
+        { status: 400 }
+      );
     }
 
-    // Simulate STL modification processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    const runner = new Runner();
 
-    // Generate modified STL content (simulated)
-    const modifiedStlContent = `solid modified_cookie_cutter
-facet normal 0.0 0.0 1.0
-  outer loop
-    vertex 0.0 0.0 0.0
-    vertex 1.0 0.0 0.0
-    vertex 0.5 1.0 0.0
-  endloop
-endfacet
-facet normal 0.0 0.0 -1.0
-  outer loop
-    vertex 0.0 0.0 3.0
-    vertex 0.5 1.0 3.0
-    vertex 1.0 0.0 3.0
-  endloop
-endfacet
-endsolid modified_cookie_cutter`
+    const result = await runner.run(stlModifierAgent, [
+      {
+        role: "user",
+        content: `以下のSTLデータを、ユーザーの修正指示に従って修正してください：
 
-    // Generate modification description based on request
-    let modificationDescription = "STLファイルを修正しました。"
+現在のSTL:
+${stlContent}
 
-    if (modificationRequest.includes("厚み") || modificationRequest.includes("3mm")) {
-      modificationDescription += " 厚みを3mmに調整しました。"
-    }
-    if (modificationRequest.includes("大きく") || modificationRequest.includes("20%")) {
-      modificationDescription += " サイズを20%拡大しました。"
-    }
-    if (modificationRequest.includes("滑らか")) {
-      modificationDescription += " 表面を滑らかにしました。"
-    }
-    if (modificationRequest.includes("頑丈")) {
-      modificationDescription += " より頑丈な構造に変更しました。"
+ユーザーの修正指示:
+${userRequest}`,
+      },
+    ]);
+
+    if (!result.finalOutput) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "エージェントの出力が取得できませんでした",
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      stlContent: modifiedStlContent,
-      modificationDescription,
-      processingTime: 2.1,
-      stlSize: modifiedStlContent.length,
-    })
+      modifiedStlContent: result.finalOutput.modifiedStlContent,
+      stage: "stl_modified",
+    });
   } catch (error) {
-    console.error("STL modification error:", error)
-    return NextResponse.json({ success: false, message: "STL modification failed" }, { status: 500 })
+    console.error("Agent error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "エージェント処理中にエラーが発生しました",
+      },
+      { status: 500 }
+    );
   }
 }
