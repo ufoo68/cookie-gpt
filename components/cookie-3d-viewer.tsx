@@ -9,7 +9,7 @@ import { Loader2 } from "lucide-react"
 import * as THREE from "three"
 
 interface Cookie3DViewerProps {
-  stlUrl?: string
+  stlContent?: string
   svgContent?: string
 }
 
@@ -134,26 +134,26 @@ function LoadingFallback() {
   )
 }
 
-export default function Cookie3DViewer({ stlUrl, svgContent }: Cookie3DViewerProps) {
+export default function Cookie3DViewer({ stlContent, svgContent }: Cookie3DViewerProps) {
   const isMobile = useIsMobile()
   const [modelLoaded, setModelLoaded] = useState(false)
 
   useEffect(() => {
-    if (stlUrl) {
+    if (stlContent) {
       // Simulate loading time for STL model
       const timer = setTimeout(() => {
         setModelLoaded(true)
       }, 1500)
       return () => clearTimeout(timer)
     }
-  }, [stlUrl])
+  }, [stlContent])
 
   return (
     <Card className="border-blue-200">
       <CardHeader>
         <CardTitle className="text-sm text-blue-800 flex items-center gap-2">
           🎯 3Dプレビュー
-          {stlUrl && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">STL</span>}
+          {stlContent && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">STL</span>}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -169,9 +169,9 @@ export default function Cookie3DViewer({ stlUrl, svgContent }: Cookie3DViewerPro
                 <pointLight position={[-10, -10, -5]} intensity={0.3} />
                 <spotLight position={[0, 10, 0]} intensity={0.5} />
 
-                {stlUrl && modelLoaded ? (
-                  <STLModel url={stlUrl} />
-                ) : stlUrl && !modelLoaded ? (
+                {stlContent && modelLoaded ? (
+                  <STLModel url={stlContent} />
+                ) : stlContent && !modelLoaded ? (
                   <LoadingFallback />
                 ) : (
                   <CookieModel />
@@ -184,7 +184,7 @@ export default function Cookie3DViewer({ stlUrl, svgContent }: Cookie3DViewerPro
                   dampingFactor={0.05}
                   maxDistance={10}
                   minDistance={2}
-                  autoRotate={stlUrl ? true : false}
+                  autoRotate={stlContent ? true : false}
                   autoRotateSpeed={0.5}
                 />
               </Suspense>
@@ -193,13 +193,13 @@ export default function Cookie3DViewer({ stlUrl, svgContent }: Cookie3DViewerPro
         </div>
         <div className="text-xs text-gray-500 mt-2 flex items-center justify-between">
           <span>
-            {stlUrl
+            {stlContent
               ? modelLoaded
                 ? "STLファイルの3Dプレビュー"
                 : "STLモデル読み込み中..."
               : "プロシージャル3Dプレビュー"}
           </span>
-          {stlUrl && modelLoaded && (
+          {stlContent && modelLoaded && (
             <span className="text-green-600 font-medium flex items-center gap-1">
               ✓ STL読み込み済み
               <span className="animate-pulse">🔄</span>

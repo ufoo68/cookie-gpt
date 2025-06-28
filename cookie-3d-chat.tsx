@@ -9,13 +9,14 @@ import { Input } from "@/components/ui/input"
 import { useIsMobile } from "@/hooks/use-mobile"
 import SVGViewer from "./components/svg-viewer"
 import STLDownload from "./components/stl-download"
+import STLViewer from "./components/stl-viewer"
 
 interface Message {
   id: number
   type: "text" | "image" | "svg" | "stl" | "user-input"
   content: string
   svgContent?: string
-  stlUrl?: string
+  stlContent?: string
   stlSize?: string
   processingTime?: string
   analysis?: string
@@ -23,6 +24,7 @@ interface Message {
   isMe: boolean
   isLoading?: boolean
   stage?: "svg_generated" | "svg_modified" | "stl_generated"
+  showStlViewer?: boolean // Add this line
 }
 
 export default function Cookie3DChat() {
@@ -263,13 +265,14 @@ export default function Cookie3DChat() {
         const stlMessage: Message = {
           id: Date.now() + 1,
           type: "stl",
-          content: "🎉 STLファイルの生成が完了しました！\n\n3Dプリンターで印刷できます。",
-          stlUrl: result.stlUrl,
+          content: "🎉 STLファイルの生成が完了しました！\n\n3Dプリンターで印刷できます.",
+          stlContent: result.stlContent,
           stlSize: result.stlSize,
           processingTime: result.processingTime,
           time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
           isMe: false,
           stage: "stl_generated",
+          showStlViewer: true, // STLビューアを表示
         }
         setMessages((prev) => [...prev, stlMessage])
       } else {
@@ -433,11 +436,11 @@ export default function Cookie3DChat() {
                       )}
                     </div>
                   )}
-                  {msg.type === "stl" && msg.stlUrl && (
+                  {msg.type === "stl" && msg.stlContent && (
                     <div className="space-y-4">
                       <p className="text-sm font-medium">{msg.content}</p>
                       <STLDownload
-                        stlUrl={msg.stlUrl}
+                        stlContent={msg.stlContent}
                         stlSize={msg.stlSize || ""}
                         processingTime={msg.processingTime || ""}
                       />
@@ -657,11 +660,12 @@ export default function Cookie3DChat() {
                       )}
                     </div>
                   )}
-                  {msg.type === "stl" && msg.stlUrl && (
+                  {msg.type === "stl" && msg.stlContent && (
                     <div className="space-y-4">
                       <p className="font-medium">{msg.content}</p>
+                      {msg.showStlViewer && <STLViewer stlContent={msg.stlContent} />}
                       <STLDownload
-                        stlUrl={msg.stlUrl}
+                        stlContent={msg.stlContent}
                         stlSize={msg.stlSize || ""}
                         processingTime={msg.processingTime || ""}
                       />

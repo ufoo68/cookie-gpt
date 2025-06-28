@@ -5,20 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, FileText, Clock } from "lucide-react"
 
 interface STLDownloadProps {
-  stlUrl: string
+  stlContent: string
   stlSize?: string
   processingTime?: string
 }
 
-export default function STLDownload({ stlUrl, stlSize, processingTime }: STLDownloadProps) {
+export default function STLDownload({ stlContent, stlSize, processingTime }: STLDownloadProps) {
   const handleDownload = () => {
-    // Create a temporary link to trigger download
+    const blob = new Blob([stlContent], { type: "application/octet-stream" })
+    const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
-    link.href = stlUrl
-    link.download = stlUrl.split("/").pop() || "cookie.stl"
+    link.href = url
+    link.download = "cookie.stl"
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url) // Clean up the object URL
   }
 
   return (

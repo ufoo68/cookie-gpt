@@ -20,15 +20,15 @@ export default function PWAInstaller() {
 
   useEffect(() => {
     // Service Workerを登録
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
       navigator.serviceWorker
         .register("/sw.js")
         .then((registration) => {
-          console.log("SW registered: ", registration)
+          console.log("SW registered: ", registration);
         })
         .catch((registrationError) => {
-          console.log("SW registration failed: ", registrationError)
-        })
+          console.log("SW registration failed: ", registrationError);
+        });
     }
 
     // PWAインストールプロンプトをキャッチ
