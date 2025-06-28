@@ -55,9 +55,25 @@ export default function SVGViewer({ svgContent, onDownload }: SVGViewerProps) {
       <CardContent>
         <div className="bg-white border border-amber-200 rounded-lg p-4">
           <div
-            className="w-full h-32 flex items-center justify-center bg-gray-50 rounded border"
-            dangerouslySetInnerHTML={{ __html: svgContent }}
-          />
+            className="w-full h-32 flex items-center justify-center bg-gray-50 rounded border overflow-hidden"
+            style={{ maxWidth: "100%", maxHeight: "128px" }}
+          >
+            <div
+              className="max-w-full max-h-full"
+              style={{
+                width: "auto",
+                height: "auto",
+                maxWidth: "100%",
+                maxHeight: "100%",
+              }}
+              dangerouslySetInnerHTML={{
+                __html: svgContent.replace(
+                  /<svg([^>]*)>/,
+                  '<svg$1 style="max-width: 100%; max-height: 100%; width: auto; height: auto;">',
+                ),
+              }}
+            />
+          </div>
         </div>
         {isExpanded && (
           <div className="mt-3">
