@@ -3,9 +3,8 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Send, Upload, Loader2, Menu, X, Zap } from "lucide-react"
+import { Upload, Loader2, Menu, X, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { useIsMobile } from "@/hooks/use-mobile"
 import SVGViewer from "./components/svg-viewer"
 import STLDownload from "./components/stl-download"
@@ -25,7 +24,6 @@ interface Message {
 }
 
 export default function Component() {
-  const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -40,20 +38,6 @@ export default function Component() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const isMobile = useIsMobile()
-
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      const newMessage: Message = {
-        id: Date.now(),
-        type: "text",
-        content: message,
-        time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
-        isMe: true,
-      }
-      setMessages((prev) => [...prev, newMessage])
-      setMessage("")
-    }
-  }
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -275,30 +259,24 @@ export default function Component() {
 
         {/* Mobile Input */}
         <div className="p-4 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300">
-          <div className="flex items-center gap-2 bg-white rounded-full p-2 shadow-lg border-2 border-amber-200">
+          <div className="bg-white rounded-full p-3 shadow-lg border-2 border-amber-200">
             <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
             <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full w-10 h-10 text-amber-600 hover:bg-amber-100 flex-shrink-0"
+              className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-md rounded-full py-4 text-lg font-medium"
               onClick={() => fileInputRef.current?.click()}
               disabled={isGenerating}
             >
-              {isGenerating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
-            </Button>
-            <Input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="画像をアップロード..."
-              className="border-0 bg-transparent focus-visible:ring-0 text-amber-900 placeholder:text-amber-500 text-base"
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            />
-            <Button
-              size="icon"
-              className="rounded-full w-10 h-10 bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-md flex-shrink-0"
-              onClick={handleSendMessage}
-            >
-              <Send className="h-5 w-5" />
+              {isGenerating ? (
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <span>AI処理中...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Upload className="h-6 w-6" />
+                  <span>画像をアップロードしてクッキー型を作成</span>
+                </div>
+              )}
             </Button>
           </div>
         </div>
@@ -448,30 +426,24 @@ export default function Component() {
 
         {/* Desktop Input */}
         <div className="p-6 bg-gradient-to-r from-amber-200 to-orange-200 border-t-2 border-amber-300">
-          <div className="flex items-center gap-4 bg-white rounded-full p-3 shadow-lg border-2 border-amber-200 max-w-4xl mx-auto">
+          <div className="max-w-2xl mx-auto">
             <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
             <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full w-12 h-12 text-amber-600 hover:bg-amber-100 flex-shrink-0"
+              className="w-full bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg rounded-full py-6 text-xl font-medium"
               onClick={() => fileInputRef.current?.click()}
               disabled={isGenerating}
             >
-              {isGenerating ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
-            </Button>
-            <Input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="画像をアップロードしてクッキー型を生成..."
-              className="border-0 bg-transparent focus-visible:ring-0 text-amber-900 placeholder:text-amber-500 text-lg"
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            />
-            <Button
-              size="icon"
-              className="rounded-full w-12 h-12 bg-gradient-to-r from-orange-400 to-amber-400 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg flex-shrink-0"
-              onClick={handleSendMessage}
-            >
-              <Send className="h-6 w-6" />
+              {isGenerating ? (
+                <div className="flex items-center gap-4">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span>AI処理中... GPT→SVG→MCP→STL</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <Upload className="h-8 w-8" />
+                  <span>画像をアップロードしてクッキー型を作成</span>
+                </div>
+              )}
             </Button>
           </div>
         </div>
