@@ -1,8 +1,6 @@
 "use client"
 
-import { useState, useMemo, Suspense, useRef } from "react"
-import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Environment, Text } from "@react-three/drei"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,10 +16,22 @@ import {
   FileText,
   CheckCircle,
   AlertTriangle,
+  Eye,
+  EyeOff,
   RotateCcw,
   ZoomIn,
 } from "lucide-react"
-import * as THREE from "three"
+import dynamic from "next/dynamic"
+
+// Dynamic import for react-stl-viewer to avoid SSR issues
+const StlViewer = dynamic(() => import("react-stl-viewer").then(mod => ({ default: mod.StlViewer })), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-80 bg-gradient-to-b from-amber-100 to-amber-200 rounded-lg">
+      <div className="text-amber-700 animate-pulse">3Dモデルを読み込み中...</div>
+    </div>
+  ),
+})
 
 interface STLViewerProps {
   stlContent: string
@@ -42,214 +52,93 @@ interface STLStats {
   format: "ASCII" | "Binary"
 }
 
-// Animated STL mesh component
-function STLMesh({ geometry }: { geometry: THREE.BufferGeometry }) {
-  const meshRef = useRef<THREE.Mesh>(null)
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1
-    }
-  })
-
-  // Calculate scale to fit in viewport
-  const scale = useMemo(() => {
-    if (!geometry.boundingBox) return 1
-
-    const box = geometry.boundingBox
-    const size = new THREE.Vector3()
-    box.getSize(size)
-
-    // Get the largest dimension
-    const maxDimension = Math.max(size.x, size.y, size.z)
-
-    // Scale to fit within a 3-unit cube
-    const targetSize = 3
-    return maxDimension > 0 ? targetSize / maxDimension : 1
-  }, [geometry])
-
-  // Calculate position to place bottom on ground
-  const yOffset = useMemo(() => {
-    if (!geometry.boundingBox) return 0
-
-    const box = geometry.boundingBox
-    // Move up by half the scaled height to place bottom on ground
-    return -(box.min.y * scale)
-  }, [geometry, scale])
-
-  return (
-    <mesh
-      ref={meshRef}
-      geometry={geometry}
-      castShadow
-      receiveShadow
-      scale={[scale, scale, scale]}
-      position={[0, yOffset, 0]}
-    >
-      <meshStandardMaterial color="#d97706" roughness={0.3} metalness={0.1} side={THREE.DoubleSide} />
-    </mesh>
-  )
-}
-
-// Fallback cookie shape component
-function CookieShape() {
-  const meshRef = useRef<THREE.Mesh>(null)
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.5
-    }
-  })
-
-  return (
-    <group position={[0, 0.15, 0]}>
-      <mesh ref={meshRef} castShadow receiveShadow>
-        <cylinderGeometry args={[1.5, 1.5, 0.3, 32]} />
-        <meshStandardMaterial color="#d97706" roughness={0.3} metalness={0.1} />
-      </mesh>
-      {/* Cookie chips */}
-      <mesh position={[0.4, 0.2, 0.4]} castShadow>
-        <sphereGeometry args={[0.1, 8, 8]} />
-        <meshStandardMaterial color="#8b4513" />
-      </mesh>
-      <mesh position={[-0.5, 0.2, 0.2]} castShadow>
-        <sphereGeometry args={[0.08, 8, 8]} />
-        <meshStandardMaterial color="#8b4513" />
-      </mesh>
-      <mesh position={[0.2, 0.2, -0.6]} castShadow>
-        <sphereGeometry args={[0.12, 8, 8]} />
-        <meshStandardMaterial color="#8b4513" />
-      </mesh>
-      <mesh position={[-0.3, 0.2, -0.4]} castShadow>
-        <sphereGeometry args={[0.09, 8, 8]} />
-        <meshStandardMaterial color="#8b4513" />
-      </mesh>
-    </group>
-  )
-}
-
-// 3D Scene component
-function Scene({ geometry }: { geometry: THREE.BufferGeometry | null }) {
-  return (
-    <>
-      {geometry ? <STLMesh geometry={geometry} /> : <CookieShape />}
-
-      {/* Ground plane */}
-      <mesh receiveShadow position={[0, -0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[20, 20]} />
-        <meshStandardMaterial color="#f3f4f6" transparent opacity={0.8} />
-      </mesh>
-
-      {/* Grid helper */}
-      <gridHelper args={[8, 16, "#f59e0b", "#fcd34d"]} position={[0, 0, 0]} />
-    </>
-  )
-}
-
-// Loading component
-function LoadingScene() {
-  return (
-    <>
-      <Text position={[0, 0, 0]} fontSize={0.5} color="#d97706" anchorX="center" anchorY="middle">
-        Loading 3D Model...
-      </Text>
-      <mesh>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#d97706" wireframe />
-      </mesh>
-    </>
-  )
-}
-
 export default function STLViewer({ stlContent, className = "" }: STLViewerProps) {
   const [showDetails, setShowDetails] = useState(false)
   const [show3D, setShow3D] = useState(true)
+  const [stlUrl, setStlUrl] = useState<string>("")
 
-  // Parse STL data and create geometry
-  const { geometry, stats } = useMemo(() => {
+  // Create blob URL for react-stl-viewer
+  useEffect(() => {
+    if (stlContent) {
+      const blob = new Blob([stlContent], { type: "application/sla" })
+      const url = URL.createObjectURL(blob)
+      setStlUrl(url)
+
+      // Cleanup function to revoke the URL
+      return () => {
+        URL.revokeObjectURL(url)
+      }
+    }
+  }, [stlContent])
+
+  // Parse STL data and create stats
+  const stats = useMemo(() => {
     try {
-      // Simple ASCII STL parser
+      // Simple ASCII STL parser for statistics
       const lines = stlContent.split("\n")
+      const triangleCount = lines.filter((line) => line.trim().startsWith("facet normal")).length
+      const vertexCount = triangleCount * 3
+      const fileSize = new Blob([stlContent]).size
+      const isBinary = stlContent.includes("\0") || !stlContent.includes("facet normal")
+
+      // Calculate approximate dimensions from vertices
       const vertices: number[] = []
-      const normals: number[] = []
-      let triangleCount = 0
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim()
-
-        if (line.startsWith("facet normal")) {
-          const normalMatch = line.match(/facet normal\s+([-\d.e]+)\s+([-\d.e]+)\s+([-\d.e]+)/)
-          if (normalMatch) {
-            const nx = Number.parseFloat(normalMatch[1]) || 0
-            const ny = Number.parseFloat(normalMatch[2]) || 0
-            const nz = Number.parseFloat(normalMatch[3]) || 0
-
-            // Read the three vertices
-            for (let j = 0; j < 3; j++) {
-              i++
-              const vertexLine = lines[i]?.trim()
-              if (vertexLine?.startsWith("vertex")) {
-                const vertexMatch = vertexLine.match(/vertex\s+([-\d.e]+)\s+([-\d.e]+)\s+([-\d.e]+)/)
-                if (vertexMatch) {
-                  vertices.push(
-                    Number.parseFloat(vertexMatch[1]) || 0,
-                    Number.parseFloat(vertexMatch[2]) || 0,
-                    Number.parseFloat(vertexMatch[3]) || 0,
-                  )
-                  normals.push(nx, ny, nz)
-                }
-              }
-            }
-            triangleCount++
+      for (const line of lines) {
+        if (line.trim().startsWith("vertex")) {
+          const parts = line.trim().split(/\s+/)
+          if (parts.length >= 4) {
+            vertices.push(
+              Number.parseFloat(parts[1]) || 0,
+              Number.parseFloat(parts[2]) || 0,
+              Number.parseFloat(parts[3]) || 0,
+            )
           }
         }
       }
 
-      let geometry: THREE.BufferGeometry | null = null
+      let minX = Number.POSITIVE_INFINITY,
+        maxX = Number.NEGATIVE_INFINITY
+      let minY = Number.POSITIVE_INFINITY,
+        maxY = Number.NEGATIVE_INFINITY
+      let minZ = Number.POSITIVE_INFINITY,
+        maxZ = Number.NEGATIVE_INFINITY
 
-      if (vertices.length > 0) {
-        geometry = new THREE.BufferGeometry()
-        geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3))
-        geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3))
-        geometry.computeBoundingBox()
-        geometry.computeBoundingSphere()
-        // Don't center the geometry here - we'll handle positioning in the mesh component
+      for (let i = 0; i < vertices.length; i += 3) {
+        minX = Math.min(minX, vertices[i])
+        maxX = Math.max(maxX, vertices[i])
+        minY = Math.min(minY, vertices[i + 1])
+        maxY = Math.max(maxY, vertices[i + 1])
+        minZ = Math.min(minZ, vertices[i + 2])
+        maxZ = Math.max(maxZ, vertices[i + 2])
       }
 
-      // Calculate dimensions
-      const box = geometry?.boundingBox
-      const dimensions = box
-        ? {
-            width: Math.abs(box.max.x - box.min.x),
-            height: Math.abs(box.max.y - box.min.y),
-            depth: Math.abs(box.max.z - box.min.z),
-          }
-        : { width: 3, height: 3, depth: 0.6 } // Default cookie dimensions
+      const dimensions = {
+        width: isFinite(maxX - minX) ? Math.abs(maxX - minX) : 0,
+        height: isFinite(maxY - minY) ? Math.abs(maxY - minY) : 0,
+        depth: isFinite(maxZ - minZ) ? Math.abs(maxZ - minZ) : 0,
+      }
 
       const stats: STLStats = {
         triangles: triangleCount,
-        vertices: vertices.length / 3,
-        fileSize: new Blob([stlContent]).size,
+        vertices: vertexCount,
+        fileSize,
         dimensions,
         isManifold: triangleCount > 0,
         isWatertight: triangleCount > 0,
-        format: "ASCII",
+        format: isBinary ? "Binary" : "ASCII",
       }
 
-      return { geometry, stats }
+      return stats
     } catch (error) {
       console.error("STL parsing error:", error)
       return {
-        geometry: null,
-        stats: {
-          triangles: 0,
-          vertices: 0,
-          fileSize: new Blob([stlContent]).size,
-          dimensions: { width: 3, height: 3, depth: 0.6 },
-          isManifold: false,
-          isWatertight: false,
-          format: "ASCII" as const,
-        },
+        triangles: 0,
+        vertices: 0,
+        fileSize: new Blob([stlContent]).size,
+        dimensions: { width: 0, height: 0, depth: 0 },
+        isManifold: false,
+        isWatertight: false,
+        format: "ASCII" as const,
       }
     }
   }, [stlContent])
@@ -278,6 +167,14 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
     URL.revokeObjectURL(url)
   }
 
+  // STL Viewer style configuration
+  const style = {
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "320px",
+  }
+
   return (
     <div className={`space-y-6 ${className}`}>
       {/* 3D Viewer */}
@@ -292,66 +189,46 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
               variant="outline"
               size="sm"
               onClick={() => setShow3D(!show3D)}
-              className="text-amber-700 border-amber-300"
+              className="text-amber-700 border-amber-300 hover:bg-amber-50"
             >
+              {show3D ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
               {show3D ? "非表示" : "表示"}
             </Button>
           </div>
         </CardHeader>
         {show3D && (
           <CardContent>
-            <div className="relative h-80 w-full rounded-lg overflow-hidden bg-gradient-to-b from-amber-100 to-amber-200">
-              <Canvas
-                camera={{ position: [4, 4, 4], fov: 50 }}
-                shadows
-                gl={{ antialias: true, alpha: false }}
-                dpr={[1, 2]}
-              >
-                <Suspense fallback={<LoadingScene />}>
-                  <Scene geometry={geometry} />
-                  <OrbitControls
-                    enablePan
-                    enableZoom
-                    enableRotate
-                    autoRotate={false}
-                    maxDistance={15}
-                    minDistance={2}
-                    enableDamping
-                    dampingFactor={0.05}
-                    target={[0, 1, 0]}
-                  />
-                  <Environment preset="studio" />
-                  <ambientLight intensity={0.4} />
-                  <directionalLight
-                    position={[8, 8, 5]}
-                    intensity={1}
-                    castShadow
-                    shadow-mapSize-width={2048}
-                    shadow-mapSize-height={2048}
-                    shadow-camera-far={50}
-                    shadow-camera-left={-10}
-                    shadow-camera-right={10}
-                    shadow-camera-top={10}
-                    shadow-camera-bottom={-10}
-                  />
-                  <pointLight position={[-5, 5, -5]} intensity={0.3} />
-                </Suspense>
-              </Canvas>
-
-              {/* 3D Controls Info */}
-              <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg p-2 text-xs text-gray-600">
-                <div className="flex items-center gap-1 mb-1">
-                  <RotateCcw className="w-3 h-3" />
-                  <span>ドラッグで回転</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <ZoomIn className="w-3 h-3" />
-                  <span>ホイールでズーム</span>
-                </div>
-              </div>
+            <div className="relative rounded-lg overflow-hidden bg-gradient-to-b from-amber-100 to-amber-200">
+              {stlUrl && (
+                <StlViewer
+                  style={style}
+                  orbitControls
+                  shadows
+                  url={stlUrl}
+                  modelProps={{
+                    color: "#d97706",
+                    positionX: 0,
+                    positionY: 0,
+                    rotationX: 0,
+                    rotationY: 0,
+                    rotationZ: 0,
+                    scale: 1,
+                  }}
+                  floorProps={{
+                    gridWidth: 200,
+                    gridLength: 200,
+                  }}
+                  onFinishLoading={(ev) => {
+                    console.log("STL model loaded successfully:", ev)
+                  }}
+                  onError={(error) => {
+                    console.error("STL loading error:", error)
+                  }}
+                />
+              )}
 
               {/* Model Info Overlay */}
-              <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg p-2">
+              <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-sm">
                 <div className="flex items-center gap-4 text-xs text-gray-600">
                   <span className="flex items-center gap-1">
                     <Cube className="w-3 h-3" />
@@ -363,8 +240,23 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
                   </span>
                 </div>
               </div>
+
+              {/* Controls Info */}
+              <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-lg p-2 text-xs text-gray-600 shadow-sm">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <RotateCcw className="w-3 h-3" />
+                    <span>左ドラッグ: 回転</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <ZoomIn className="w-3 h-3" />
+                    <span>ホイール: ズーム</span>
+                  </div>
+                  <div className="text-xs text-gray-500">右ドラッグ: パン</div>
+                </div>
+              </div>
             </div>
-            <div className="mt-4 text-sm text-amber-700 text-center">マウスで回転・ズーム・パンができます</div>
+            <div className="mt-4 text-sm text-amber-700 text-center">マウスで3Dモデルを自由に操作できます</div>
           </CardContent>
         )}
       </Card>
@@ -432,7 +324,11 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
             <div className="flex flex-wrap gap-2">
               <Badge
                 variant={stats.isManifold ? "default" : "destructive"}
-                className={stats.isManifold ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                className={
+                  stats.isManifold
+                    ? "bg-green-100 text-green-800 border-green-200"
+                    : "bg-red-100 text-red-800 border-red-200"
+                }
               >
                 {stats.isManifold ? (
                   <CheckCircle className="h-3 w-3 mr-1" />
@@ -443,7 +339,11 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
               </Badge>
               <Badge
                 variant={stats.isWatertight ? "default" : "destructive"}
-                className={stats.isWatertight ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                className={
+                  stats.isWatertight
+                    ? "bg-green-100 text-green-800 border-green-200"
+                    : "bg-red-100 text-red-800 border-red-200"
+                }
               >
                 {stats.isWatertight ? (
                   <CheckCircle className="h-3 w-3 mr-1" />
@@ -452,7 +352,7 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
                 )}
                 {stats.isWatertight ? "水密" : "非水密"}
               </Badge>
-              <Badge className="bg-blue-100 text-blue-800">
+              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 3Dプリント対応
               </Badge>
