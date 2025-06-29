@@ -11,6 +11,15 @@ importers:
       '@ai-sdk/openai':
         specifier: ^0.0.66
         version: 0.0.66(zod@3.25.67)
+      '@jscad/modeling':
+        specifier: ^2.12.5
+        version: 2.12.5
+      '@jscad/stl-serializer':
+        specifier: ^2.1.20
+        version: 2.1.20
+      '@jscad/svg-deserializer':
+        specifier: ^2.5.11
+        version: 2.5.11
       '@openai/agents':
         specifier: 0.0.1
         version: 0.0.1(ws@8.18.3)(zod@3.25.67)
@@ -1071,7 +1080,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@0.17.0':
     resolution: {integrity: sha512-LaOT6kz6/UIpnTdJ+bKzLEbXeSVipm45JxzrS5VUtw2FIHzcvkdBRAWzigLyMAJU8Bi6XTSXTRYNSSad0bff1g==}
@@ -1269,6 +1278,21 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
+
+  '@jscad/array-utils@2.1.4':
+    resolution: {integrity: sha512-c31r4zSKsE+4Xfwk2V8monDA0hx5G89QGzaakWVUvuGNowYS9WSsYCwHiTIXodjR+HEnDu4okQ7k/whmP0Ne2g==}
+
+  '@jscad/io-utils@2.0.30':
+    resolution: {integrity: sha512-VL0eCrjYGp9Xj+/3G9ZzunnRmUQSyHB1+QIBw9ZQU4UJWo7HKlbgQ+kFwCT4EtKb7c+83eHWVBlH4Hvt7Znvug==}
+
+  '@jscad/modeling@2.12.5':
+    resolution: {integrity: sha512-7deHWmE+CKBx2RyxDxl9Pie0bDOHHtcsh4V0gKViu27abYXKGl8+myoddwIvxLczwnw31ZZXDdUdm0Ef51YwQg==}
+
+  '@jscad/stl-serializer@2.1.20':
+    resolution: {integrity: sha512-/hLO+eLsWDNLkAheZ8SoOCzj8wYWiHABbT/O5dhy+pyXT0mLKOv0dHV1Z8rYPySjhdxHcZ1Pzi3IF5bi+P/9bg==}
+
+  '@jscad/svg-deserializer@2.5.11':
+    resolution: {integrity: sha512-D1heO5XbYg99rwnWS2MFv+GgORIslOStHLXqa0m/UqFaU4X6rY1SdOYBhWVL1abFvT3/pKfB0oCt6QIw8FdZCA==}
 
   '@modelcontextprotocol/sdk@1.13.2':
     resolution: {integrity: sha512-Vx7qOcmoKkR3qhaQ9qf3GxiVKCEu+zfJddHv6x3dY/9P6+uIwJnmuAur5aB+4FDXf41rRrDnOEGkviX5oYZ67w==}
@@ -5253,6 +5277,10 @@ packages:
   sax@1.4.1:
     resolution: {integrity: sha512-+aWOz7yVScEGoKNd4PA10LZ8sk0A/z5+nXQG5giUO5rprX9jgYsTdov9qCchZiPIZezbZH+jRut8nPodFAX4Jg==}
 
+  saxes@5.0.1:
+    resolution: {integrity: sha512-5LBh1Tls8c9xgGjw3QrMwETmTMVk0oFgvrFSvWx62llR2hcEInrKNZ2GZCCuuy2lvWrdl5jhbpeqc5hRYKFOcw==}
+    engines: {node: '>=10'}
+
   scheduler@0.21.0:
     resolution: {integrity: sha512-1r87x5fz9MXqswA2ERLo0EbOAU74DpIUO090gIasYTqlVoJeMcl+Z1Rg7WHz+qtPujhS/hGIt9kxZOYBV3faRQ==}
 
@@ -6033,6 +6061,9 @@ packages:
   xmlbuilder@15.1.1:
     resolution: {integrity: sha512-yMqGBqtXyeN1e3TGYvgNgDVZ3j84W4cwkOXQswghol6APgZWaff9lnbvN7MHYJOiXsvGPXtjTYJEiC9J2wv9Eg==}
     engines: {node: '>=8.0'}
+
+  xmlchars@2.2.0:
+    resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
@@ -7615,6 +7646,24 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
+
+  '@jscad/array-utils@2.1.4': {}
+
+  '@jscad/io-utils@2.0.30': {}
+
+  '@jscad/modeling@2.12.5': {}
+
+  '@jscad/stl-serializer@2.1.20':
+    dependencies:
+      '@jscad/array-utils': 2.1.4
+      '@jscad/modeling': 2.12.5
+
+  '@jscad/svg-deserializer@2.5.11':
+    dependencies:
+      '@jscad/array-utils': 2.1.4
+      '@jscad/io-utils': 2.0.30
+      '@jscad/modeling': 2.12.5
+      saxes: 5.0.1
 
   '@modelcontextprotocol/sdk@1.13.2':
     dependencies:
@@ -12607,6 +12656,10 @@ snapshots:
 
   sax@1.4.1: {}
 
+  saxes@5.0.1:
+    dependencies:
+      xmlchars: 2.2.0
+
   scheduler@0.21.0:
     dependencies:
       loose-envify: 1.4.0
@@ -13496,6 +13549,8 @@ snapshots:
   xmlbuilder@14.0.0: {}
 
   xmlbuilder@15.1.1: {}
+
+  xmlchars@2.2.0: {}
 
   y18n@5.0.8: {}
 

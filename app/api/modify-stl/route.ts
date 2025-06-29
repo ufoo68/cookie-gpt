@@ -19,7 +19,8 @@ const stlModifierAgent = new Agent({
   model: "gpt-4o", // 幾何学的推論にはより高度なモデルが望ましい
   instructions,
   outputType: z.object({
-    modifiedStlContent: z.string().describe("修正されたSTLデータ (ASCII形式)"),
+    modificationDescription: z.string().describe("ユーザーの修正指示に基づくSTLデータの変更内容"),
+    stlContent: z.string().describe("修正されたSTLデータ (ASCII形式)"),
   }),
 });
 
@@ -37,6 +38,7 @@ ${userRequest}`;
 export async function POST(request: NextRequest) {
   try {
     const { stlContent, userRequest } = await request.json();
+    const startTime = Date.now();
 
     if (!stlContent || !userRequest) {
       return NextResponse.json(
@@ -64,9 +66,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const stlFileSize = result.finalOutput.stlContent.length;
+
     return NextResponse.json({
       success: true,
-      modifiedStlContent: result.finalOutput.modifiedStlContent,
+      modificationDescription: result.finalOutput.modificationDescription,
+      processingTime: Date.now() - startTime,
+      stlContent: result.finalOutput.stlContent,
+      stlSize: stlFileSize,
       stage: "stl_modified",
     });
   } catch (error) {

@@ -415,7 +415,7 @@ export default function Cookie3DChat() {
     setIsGenerating(true)
 
     try {
-      const response = await fetch("/api/generate-stl", {
+      const response = await fetch("/api/convert-stl", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ svgContent: currentSvg }),

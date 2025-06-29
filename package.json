@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.66",
+    "@jscad/modeling": "^2.12.5",
+    "@jscad/stl-serializer": "^2.1.20",
+    "@jscad/svg-deserializer": "^2.5.11",
     "@openai/agents": "0.0.1",
     "@radix-ui/react-accordion": "1.0.0",
     "@radix-ui/react-alert-dialog": "1.0.0",
