@@ -207,9 +207,9 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
                   url={stlUrl}
                   modelProps={{
                     color: "#d97706",
-                    positionX: 0,
-                    positionY: 0,
-                    rotationX: -90,
+                    positionX: 100,
+                    positionY: 100,
+                    rotationX: 0,
                     rotationY: 0,
                     rotationZ: 0,
                     scale: 1,
