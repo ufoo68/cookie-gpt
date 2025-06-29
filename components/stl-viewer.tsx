@@ -209,7 +209,7 @@ export default function STLViewer({ stlContent, className = "" }: STLViewerProps
                     color: "#d97706",
                     positionX: 0,
                     positionY: 0,
-                    rotationX: 0,
+                    rotationX: -90,
                     rotationY: 0,
                     rotationZ: 0,
                     scale: 1,
