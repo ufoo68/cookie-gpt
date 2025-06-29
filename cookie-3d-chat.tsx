@@ -149,7 +149,7 @@ export default function Cookie3DChat() {
       const formData = new FormData()
       formData.append("image", file)
 
-      const response = await fetch("/api/generate-cookie", {
+      const response = await fetch("/api/convert-svg", {
         method: "POST",
         body: formData,
       })
