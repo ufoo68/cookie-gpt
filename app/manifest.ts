@@ -15,13 +15,13 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/icon-192x192.png",
         sizes: "192x192",
         type: "image/png",
-        purpose: "maskable any",
+        purpose: "maskable",
       },
       {
         src: "/icon-512x512.png",
         sizes: "512x512",
         type: "image/png",
-        purpose: "maskable any",
+        purpose: "maskable",
       },
       {
         src: "/apple-touch-icon.png",
@@ -38,13 +38,11 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/screenshot-mobile.png",
         sizes: "390x844",
         type: "image/png",
-        form_factor: "narrow",
       },
       {
         src: "/screenshot-desktop.png",
         sizes: "1280x720",
         type: "image/png",
-        form_factor: "wide",
       },
     ],
     shortcuts: [
