@@ -3,7 +3,9 @@ import { deserialize } from "@jscad/svg-deserializer";
 import { serialize } from "@jscad/stl-serializer";
 import * as modeling from "@jscad/modeling";
 
-export const runtime = "nodejs"; // JSCAD は Node.js 環境のみ対応
+const extrudeLinear = modeling.extrusions.extrudeLinear;
+const offset = modeling.expansions.offset;
+const subtract = modeling.booleans.subtract;
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -23,7 +25,11 @@ export async function POST(request: NextRequest) {
     const extruded = 
       shapes
         .filter((shape) => shape.isClosed)
-        .map((shape) => modeling.extrusions.extrudeLinear({ height: 5 }, shape));
+        .map((shape) => {
+          const outer = extrudeLinear({ height: 10 }, shape);
+          const inner = extrudeLinear({ height: 10 }, offset({ delta: -2 }, shape));
+          return subtract(outer, inner);
+        });
     if (extruded.length === 0) {
       return NextResponse.json(
         { success: false, message: "有効なSVGパスが見つかりません" },
