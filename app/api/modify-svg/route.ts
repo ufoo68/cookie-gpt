@@ -20,21 +20,6 @@ const svgModifierAgent = new Agent({
   }),
 });
 
-const createModificationPrompt = (
-  svgContent: string,
-  userRequest: string,
-  originalAnalysis: string
-) => `以下のSVGを、ユーザーの修正指示に従って修正してください：
-
-現在のSVG:
-${svgContent}
-
-元の分析:
-${originalAnalysis}
-
-ユーザーの修正指示:
-${userRequest}`;
-
 
 
 export async function POST(request: NextRequest) {
@@ -52,12 +37,27 @@ export async function POST(request: NextRequest) {
 
     const result = await runner.run(svgModifierAgent, [
       {
+        status: "in_progress",
+        role: "assistant",
+        content: [
+          {
+            type: "output_text",
+            text: originalAnalysis,
+          },
+          {
+            type: "output_text",
+            text: svgContent,
+          }
+        ],
+      },
+      {
         role: "user",
-        content: createModificationPrompt(
-          svgContent,
-          userRequest,
-          originalAnalysis
-        ),
+        content: [
+          {
+            type: "input_text",
+            text: userRequest,
+          }
+        ]
       },
     ]);
 
