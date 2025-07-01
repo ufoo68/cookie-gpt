@@ -209,7 +209,19 @@ export default function Cookie3DChat() {
     const fileName = file.name.toLowerCase()
 
     try {
-      if (fileType.includes("image")) {
+      if (fileType === "image/svg+xml" || fileName.endsWith(".svg")) {
+        // SVGファイルの場合
+        const svgText = await file.text()
+        setSvgContent(svgText)
+        setStage("svg_generated")
+        addMessage("assistant", "SVGファイルをアップロードしました！デザインを確認できます。🎨")
+      } else if (fileName.endsWith(".stl")) {
+        // STLファイルの場合
+        const stlText = await file.text()
+        setStlContent(stlText)
+        setStage("stl_generated")
+        addMessage("assistant", "STLファイルをアップロードしました！3Dプレビューで確認できます。🎯")
+      } else if (fileType.includes("image")) {
         // 画像の場合
         const formData = new FormData()
         formData.append("image", file)
@@ -226,12 +238,6 @@ export default function Cookie3DChat() {
         setSvgContent(data.svgContent)
         setStage("svg_generated")
         addMessage("assistant", "アップロードされた画像からクッキーデザインを生成しました！🎨")
-      } else if (fileName.endsWith(".stl")) {
-        // STLファイルの場合
-        const stlText = await file.text()
-        setStlContent(stlText)
-        setStage("stl_generated")
-        addMessage("assistant", "STLファイルをアップロードしました！3Dプレビューで確認できます。🎯")
       }
     } catch (error) {
       console.error("Error uploading file:", error)
@@ -413,7 +419,7 @@ export default function Cookie3DChat() {
                   </div>
                 ))}
 
-                {stage === "svg_generated" && svgContent && (
+                {svgContent && (
                   <Card className="max-w-2xl mx-auto">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -437,7 +443,7 @@ export default function Cookie3DChat() {
                   </Card>
                 )}
 
-                {stage === "stl_generated" && stlContent && (
+                {stlContent && (
                   <Card className="max-w-2xl mx-auto">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
