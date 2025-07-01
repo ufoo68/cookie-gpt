@@ -1,109 +1,61 @@
 "use client"
 
-
-
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Eye, EyeOff } from "lucide-react";
-import { sanitizeSvg } from "@/lib/utils";
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Download, Eye, EyeOff } from "lucide-react"
 
 interface SVGViewerProps {
-  svgContent: string;
-  onDownload?: () => void;
+  svgContent: string
+  onDownload?: () => void
 }
 
-// UTF-8対応のBase64エンコード関数
-const base64EncodeUnicode = (str: string) => {
-  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
-    function toSolidBytes(match, p1) {
-      return String.fromCharCode(parseInt(p1, 16));
-    }
-  ));
-};
-
-export default function SVGViewer({ svgContent, onDownload }: SVGViewerProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [dataUrl, setDataUrl] = useState("");
-  const [sanitizedContent, setSanitizedContent] = useState("");
-
-  useEffect(() => {
-    const sanitized = sanitizeSvg(svgContent);
-    setSanitizedContent(sanitized);
-    const encodedSvg = base64EncodeUnicode(sanitized);
-    const url = `data:image/svg+xml;base64,${encodedSvg}`;
-    setDataUrl(url);
-
-    console.log("Sanitized SVG Content:", sanitized);
-    console.log("Generated Data URL:", url);
-
-    // Clean up object URL if created (though not strictly necessary for data URLs)
-    return () => {
-      // No cleanup needed for data URLs
-    };
-  }, [svgContent]);
+export function SvgViewer({ svgContent, onDownload }: SVGViewerProps) {
+  const [showPreview, setShowPreview] = useState(true)
 
   const handleDownload = () => {
-    const blob = new Blob([sanitizedContent], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "cookie-cutter.svg";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    onDownload?.();
-  };
+    const blob = new Blob([svgContent], { type: "image/svg+xml" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "cookie-design.svg"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    if (onDownload) {
+      onDownload()
+    }
+  }
 
   return (
-    <Card className="border-amber-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm text-amber-800 flex items-center gap-2">🎨 SVGプレビュー</CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="border-amber-300 text-amber-700 hover:bg-amber-50"
-            >
-              {isExpanded ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="border-amber-300 text-amber-700 hover:bg-amber-50 bg-transparent"
-              disabled={!sanitizedContent}
-            >
-              <Download className="h-4 w-4 mr-1" />
-              SVG
-            </Button>
-          </div>
-        </div>
+    <Card className="border-blue-200 bg-blue-50">
+      <CardHeader>
+        <CardTitle className="text-sm text-blue-800 flex items-center gap-2">
+          📐 SVGデザイン
+          <Button variant="ghost" size="sm" onClick={() => setShowPreview(!showPreview)} className="ml-auto">
+            {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="bg-white border border-amber-200 rounded-lg p-4">
-          <div className="w-full h-32 flex items-center justify-center bg-gray-50 rounded border overflow-hidden">
-            {dataUrl && (
-              <img
-                src={dataUrl}
-                alt="SVG Preview"
-                className="max-w-full max-h-full"
-              />
-            )}
-          </div>
-        </div>
-        {isExpanded && (
-          <div className="mt-3">
-            <div className="text-xs text-gray-600 mb-2">SVGコード:</div>
-            <pre className="text-xs bg-gray-100 p-3 rounded border overflow-x-auto max-h-40">
-              <code>{sanitizedContent}</code>
-            </pre>
+      <CardContent className="space-y-4">
+        {showPreview && (
+          <div className="bg-white rounded-lg p-4 border-2 border-blue-100">
+            <div
+              className="w-full h-64 flex items-center justify-center"
+              dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
           </div>
         )}
+
+        <Button onClick={handleDownload} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+          <Download className="h-4 w-4 mr-2" />
+          SVGファイルをダウンロード
+        </Button>
+
+        <div className="text-xs text-gray-500 text-center">ベクター形式のデザインファイルです</div>
       </CardContent>
     </Card>
-  );
+  )
 }
