@@ -61,7 +61,7 @@
     "react-hook-form": "latest",
     "react-native": "0.76.0",
     "react-resizable-panels": "latest",
-    "react-stl-viewer": "^2.5.0",
+    "react-stl-viewer": "latest",
     "recharts": "latest",
     "sonner": "latest",
     "tailwind-merge": "^2.5.5",

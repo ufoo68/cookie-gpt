@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -14,7 +14,22 @@ interface STLViewerProps {
 export default function StlViewer({ stlContent, stlUrl }: STLViewerProps) {
   const [show3DViewer, setShow3DViewer] = useState(true)
   const [viewerError, setViewerError] = useState(false)
-  const [useReactStlViewer, setUseReactStlViewer] = useState(true)
+  const [StlViewerComponent, setStlViewerComponent] = useState<any>(null)
+
+  // Dynamic import of react-stl-viewer
+  useEffect(() => {
+    const loadStlViewer = async () => {
+      try {
+        const { StlViewer } = await import("react-stl-viewer")
+        setStlViewerComponent(() => StlViewer)
+      } catch (error) {
+        console.error("Failed to load react-stl-viewer:", error)
+        setViewerError(true)
+      }
+    }
+
+    loadStlViewer()
+  }, [])
 
   // STL統計情報の計算
   const stlStats = useMemo(() => {
@@ -67,51 +82,50 @@ export default function StlViewer({ stlContent, stlUrl }: STLViewerProps) {
     }
   }, [stlContent])
 
-  // react-stl-viewerのエラーハンドリング付きコンポーネント
+  // react-stl-viewerコンポーネント
   const ReactStlViewerWrapper = () => {
-    try {
-      // Dynamic import to avoid SSR issues
-      const StlViewer = require("react-stl-viewer").StlViewer
-
+    if (!StlViewerComponent) {
       return (
-        <StlViewer
-          style={{ top: 0, left: 0, width: "100%", height: "320px" }}
-          orbitControls
-          shadows
-          showAxes={false}
-          url={stlUrl || ""}
-          modelProps={{
-            color: "#d97706",
-            positionX: 0,
-            positionY: 0,
-            positionZ: 0,
-            rotationX: 0,
-            rotationY: 0,
-            rotationZ: 0,
-            scale: 1,
-          }}
-          floorProps={{
-            gridLength: 200,
-            gridWidth: 200,
-          }}
-          cameraProps={{
-            position: [3, 3, 3],
-          }}
-          lightProps={{
-            ambientIntensity: 0.4,
-            directionalIntensity: 1.0,
-          }}
-          onError={() => setViewerError(true)}
-        />
+        <div className="w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center">
+          <div className="text-gray-500">3Dビューアーを読み込み中...</div>
+        </div>
       )
-    } catch (error) {
-      console.error("react-stl-viewer エラー:", error)
-      setViewerError(true)
-      return null
     }
+
+    return (
+      <StlViewerComponent
+        style={{ top: 0, left: 0, width: "100%", height: "320px" }}
+        orbitControls
+        shadows
+        showAxes={false}
+        url={stlUrl || ""}
+        modelProps={{
+          color: "#d97706",
+          positionX: 0,
+          positionY: 0,
+          positionZ: 0,
+          rotationX: 0,
+          rotationY: 0,
+          rotationZ: 0,
+          scale: 1,
+        }}
+        floorProps={{
+          gridLength: 200,
+          gridWidth: 200,
+        }}
+        cameraProps={{
+          position: [3, 3, 3],
+        }}
+        lightProps={{
+          ambientIntensity: 0.4,
+          directionalIntensity: 1.0,
+        }}
+        onError={() => setViewerError(true)}
+      />
+    )
   }
 
-  // フォールバック用のThree.js実装
+  // フォールバック用の表示
   const FallbackViewer = () => (
     <div className="w-full h-80 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border-2 border-amber-200 flex flex-col items-center justify-center text-amber-800">
       <div className="text-6xl mb-4">🎯</div>
@@ -147,7 +161,7 @@ export default function StlViewer({ stlContent, stlUrl }: STLViewerProps) {
                 size="sm"
                 onClick={() => {
                   setViewerError(false)
-                  setUseReactStlViewer(true)
+                  window.location.reload()
                 }}
                 className="text-orange-600 hover:text-orange-700"
               >
@@ -163,7 +177,7 @@ export default function StlViewer({ stlContent, stlUrl }: STLViewerProps) {
       <CardContent className="space-y-4">
         {show3DViewer && (
           <div className="bg-white rounded-lg border-2 border-purple-100 overflow-hidden">
-            {!viewerError && useReactStlViewer ? <ReactStlViewerWrapper /> : <FallbackViewer />}
+            {!viewerError && StlViewerComponent ? <ReactStlViewerWrapper /> : <FallbackViewer />}
           </div>
         )}
 
