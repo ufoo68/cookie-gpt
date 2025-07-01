@@ -33,7 +33,7 @@ import { SvgViewer } from "@/components/svg-viewer"
 import { StlViewer } from "@/components/stl-viewer"
 import STLDownload from "@/components/stl-download"
 import { useToast } from "@/hooks/use-toast"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 type Message = {
   id: string
@@ -66,7 +66,7 @@ export default function Cookie3DChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
-  const isMobile = useMobile()
+  const isMobile = useIsMobile()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
