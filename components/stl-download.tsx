@@ -10,7 +10,7 @@ interface STLDownloadProps {
   processingTime?: string
 }
 
-export default function STLDownload({ stlContent, stlSize, processingTime }: STLDownloadProps) {
+export function StlDownload({ stlContent, stlSize, processingTime }: STLDownloadProps) {
   const handleDownload = () => {
     const blob = new Blob([stlContent], { type: "application/octet-stream" })
     const url = URL.createObjectURL(blob)

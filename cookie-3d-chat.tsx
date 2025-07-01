@@ -26,9 +26,9 @@ import {
   Cake,
   Gift,
 } from "lucide-react"
-import SVGViewer from "@/components/svg-viewer"
-import STLViewer from "@/components/stl-viewer"
-import STLDownload from "@/components/stl-download"
+import { SvgViewer } from "@/components/svg-viewer"
+import { StlViewer } from "@/components/stl-viewer"
+import { StlDownload } from "@/components/stl-download"
 import { useToast } from "@/hooks/use-toast"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -420,7 +420,7 @@ export default function Cookie3DChat() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <SVGViewer svgContent={svgContent} onDownload={() => {}} />
+                      <SvgViewer svgContent={svgContent} onDownload={() => {}} />
                       <div className="mt-4 flex gap-2">
                         <Button onClick={approveSvg} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
                           {isLoading ? (
@@ -444,9 +444,9 @@ export default function Cookie3DChat() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <STLViewer stlContent={stlContent} />
+                      <StlViewer stlContent={stlContent} />
                       <div className="mt-4">
-                        <STLDownload
+                        <StlDownload
                           stlContent={stlContent}
                           stlSize={`${(new Blob([stlContent]).size / 1024 / 1024).toFixed(2)} MB`}
                           processingTime=""
