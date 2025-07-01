@@ -24,7 +24,7 @@ const svgModifierAgent = new Agent({
 
 export async function POST(request: NextRequest) {
   try {
-    const { svgContent, userRequest, originalAnalysis } = await request.json();
+    const { svgContent, userRequest } = await request.json();
 
     if (!svgContent || !userRequest) {
       return NextResponse.json(
@@ -40,10 +40,6 @@ export async function POST(request: NextRequest) {
         status: "in_progress",
         role: "assistant",
         content: [
-          {
-            type: "output_text",
-            text: originalAnalysis,
-          },
           {
             type: "output_text",
             text: svgContent,
@@ -73,7 +69,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       svgContent: sanitizedSvg,
-      stage: "svg_modified",
     });
   } catch (error) {
     console.error("Agent error:", error);

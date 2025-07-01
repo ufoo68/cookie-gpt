@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
       shapes
         .filter((shape) => shape.isClosed)
         .map((shape) => {
-          const outer = extrudeLinear({ height: 10 }, shape);
-          const inner = extrudeLinear({ height: 10 }, offset({ delta: -2 }, shape));
+          const inner = extrudeLinear({ height: 10 }, shape);
+          const outer = extrudeLinear({ height: 10 }, offset({ delta: 1 }, shape));
           return subtract(outer, inner);
         });
     if (extruded.length === 0) {
@@ -40,14 +40,10 @@ export async function POST(request: NextRequest) {
     // STLをASCII形式で生成
     const stlArray = serialize({ binary: false }, extruded);
     const stlContent = stlArray[0];
-    const stlFileSize = stlContent.length;
 
     return NextResponse.json({
       success: true,
-      stlSize: stlFileSize,
-      processingTime: Date.now() - startTime,
       stlContent,
-      stage: "stl_generated",
     });
   } catch (error) {
     console.error("STL生成エラー:", error);

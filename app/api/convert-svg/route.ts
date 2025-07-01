@@ -17,7 +17,6 @@ const cookieCutterAgent = new Agent({
   model: "gpt-4o",
   instructions,
   outputType: z.object({
-    analysis: z.string().describe("画像の分析結果テキスト"),
     svgContent: z.string().describe("生成されたクッキー型のSVGコード"),
   }),
 });
@@ -68,9 +67,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      analysis: result.finalOutput.analysis,
       svgContent: sanitizedSvg,
-      stage: "svg_generated",
     });
   } catch (error) {
     console.error("Agent error:", error);
