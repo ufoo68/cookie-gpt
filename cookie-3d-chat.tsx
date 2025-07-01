@@ -277,8 +277,8 @@ export default function Cookie3DChat() {
   ]
 
   const Sidebar = () => (
-    <div className="w-80 bg-gradient-to-b from-amber-50 to-orange-50 border-r border-amber-200 flex flex-col h-full">
-      <div className="p-4 border-b border-amber-200">
+    <div className="w-80 bg-gradient-to-b from-amber-50 to-orange-50 border-r border-amber-200 flex flex-col min-h-0 h-full">
+      <div className="p-4 border-b border-amber-200 flex-shrink-0">
         <div className="flex items-center gap-2 mb-4">
           <Cookie className="h-6 w-6 text-amber-600" />
           <h2 className="text-lg font-semibold text-amber-800">クッキー3Dチャット</h2>
@@ -298,46 +298,48 @@ export default function Cookie3DChat() {
         </div>
       </div>
 
-      {stage === "chat" && (
-        <div className="p-4">
-          <h3 className="font-medium text-amber-800 mb-3">💡 提案例</h3>
-          <div className="space-y-2">
-            {suggestionExamples.map((example, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-left h-auto p-2 hover:bg-amber-100"
-                onClick={() => setInputValue(example.text)}
-              >
-                <example.icon className={`h-4 w-4 mr-2 ${example.color}`} />
-                <span className="text-sm">{example.text}</span>
-              </Button>
-            ))}
+      <div className="flex-1 overflow-y-auto">
+        {stage === "chat" && (
+          <div className="p-4">
+            <h3 className="font-medium text-amber-800 mb-3">💡 提案例</h3>
+            <div className="space-y-2">
+              {suggestionExamples.map((example, index) => (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-left h-auto p-2 hover:bg-amber-100"
+                  onClick={() => setInputValue(example.text)}
+                >
+                  <example.icon className={`h-4 w-4 mr-2 ${example.color}`} />
+                  <span className="text-sm">{example.text}</span>
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {stage === "svg_generated" && (
-        <div className="p-4">
-          <h3 className="font-medium text-amber-800 mb-3">🔧 修正例</h3>
-          <div className="space-y-2">
-            {modificationExamples.map((example, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-left h-auto p-2 hover:bg-amber-100"
-                onClick={() => setInputValue(example)}
-              >
-                <span className="text-sm">{example}</span>
-              </Button>
-            ))}
+        {stage === "svg_generated" && (
+          <div className="p-4">
+            <h3 className="font-medium text-amber-800 mb-3">🔧 修正例</h3>
+            <div className="space-y-2">
+              {modificationExamples.map((example, index) => (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-left h-auto p-2 hover:bg-amber-100"
+                  onClick={() => setInputValue(example)}
+                >
+                  <span className="text-sm">{example}</span>
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      <div className="mt-auto p-4 border-t border-amber-200">
+      <div className="p-4 border-t border-amber-200 flex-shrink-0">
         <Button variant="outline" size="sm" className="w-full bg-transparent" onClick={resetProcess}>
           <RefreshCw className="h-4 w-4 mr-2" />
           新しいクッキーを作る
@@ -347,7 +349,7 @@ export default function Cookie3DChat() {
   )
 
   const MobileHeader = () => (
-    <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 flex items-center justify-between">
+    <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 flex items-center justify-between flex-shrink-0">
       <div className="flex items-center gap-2">
         <Cookie className="h-6 w-6" />
         <h1 className="text-lg font-semibold">クッキー3Dチャット</h1>
@@ -374,14 +376,14 @@ export default function Cookie3DChat() {
   )
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-white overflow-hidden">
       {!isMobile && <Sidebar />}
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {isMobile && <MobileHeader />}
 
         {!isMobile && (
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 flex-shrink-0">
             <div className="flex items-center gap-2">
               <Cookie className="h-6 w-6" />
               <h1 className="text-xl font-semibold">クッキー3Dチャット</h1>
@@ -394,8 +396,8 @@ export default function Cookie3DChat() {
           </div>
         )}
 
-        <div className="flex-1 flex">
-          <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex min-h-0">
+          <div className="flex-1 flex flex-col min-h-0">
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4 max-w-4xl mx-auto">
                 {messages.map((message) => (
@@ -460,7 +462,7 @@ export default function Cookie3DChat() {
               </div>
             </ScrollArea>
 
-            <div className="border-t bg-white p-4">
+            <div className="border-t bg-white p-4 flex-shrink-0">
               <div className="max-w-4xl mx-auto">
                 <div className="flex gap-2">
                   <div className="flex-1">
