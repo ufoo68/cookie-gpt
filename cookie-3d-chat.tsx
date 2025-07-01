@@ -527,38 +527,6 @@ export default function Cookie3DChat() {
 
             <div className="border-t bg-white p-4">
               <div className="max-w-4xl mx-auto">
-                {(stage === "svg_generated" || stage === "stl_generated") && (
-                  <div className="mb-4">
-                    <Textarea
-                      placeholder={
-                        stage === "svg_generated"
-                          ? "デザインの修正内容を入力してください..."
-                          : "3Dモデルの修正内容を入力してください..."
-                      }
-                      value={modificationInput}
-                      onChange={(e) => setModificationInput(e.target.value)}
-                      className="min-h-[60px] resize-none"
-                    />
-                    <div className="flex gap-2 mt-2">
-                      <Button
-                        onClick={() =>
-                          stage === "svg_generated" ? modifySvg(modificationInput) : modifyStl(modificationInput)
-                        }
-                        disabled={!modificationInput.trim() || isModifying}
-                        size="sm"
-                      >
-                        {isModifying ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-4 w-4 mr-2" />
-                        )}
-                        修正を適用
-                      </Button>
-                    </div>
-                    <Separator className="my-4" />
-                  </div>
-                )}
-
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <Input
