@@ -16,7 +16,7 @@ export function StlDownload({ stlContent, stlSize, processingTime }: STLDownload
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = "cookie.stl"
+    link.download = `cookie-cutter-${Date.now()}.stl`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

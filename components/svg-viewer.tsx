@@ -18,7 +18,7 @@ export function SvgViewer({ svgContent, onDownload }: SVGViewerProps) {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = "cookie-design.svg"
+    link.download = `cookie-cutter-${Date.now()}.svg`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
