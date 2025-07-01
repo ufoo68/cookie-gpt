@@ -89,7 +89,7 @@ export default function Cookie3DChat() {
   const generateCookieDesign = async (prompt: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/convert-svg", {
+      const response = await fetch("/api/cookie-cutter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
@@ -100,7 +100,7 @@ export default function Cookie3DChat() {
       }
 
       const data = await response.json()
-      setSvgContent(data.svg)
+      setSvgContent(data.svgContent)
       setStage("svg_generated")
       addMessage(
         "assistant",
@@ -158,7 +158,7 @@ export default function Cookie3DChat() {
       const response = await fetch("/api/convert-stl", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ svg: svgContent }),
+        body: JSON.stringify({ svgContent }),
       })
 
       if (!response.ok) {
@@ -166,7 +166,7 @@ export default function Cookie3DChat() {
       }
 
       const data = await response.json()
-      setStlUrl(data.stlUrl)
+      setStlUrl(data.stlContent)
       setStage("stl_generated")
       addMessage(
         "assistant",
@@ -250,8 +250,8 @@ export default function Cookie3DChat() {
     const fileName = file.name.toLowerCase()
 
     try {
-      if (fileType.includes("image") || fileName.endsWith(".svg")) {
-        // 画像またはSVGファイルの場合
+      if (fileType.includes("image")) {
+        // 画像の場合
         const formData = new FormData()
         formData.append("file", file)
 
