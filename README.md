@@ -9,24 +9,5 @@ _Automatically synced with your [v0.dev](https://v0.dev) deployments_
 
 ## Overview
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+Cookie-GPT is an innovative application that leverages AI to transform user-provided images into custom cookie cutter designs. Users can upload an image, and the system will process it to generate a corresponding SVG (for 2D representation) and STL (for 3D printing) file, enabling the creation of unique physical cookie cutters.
 
-## Deployment
-
-Your project is live at:
-
-**[https://vercel.com/ufoo68s-projects/v0-cookie-design-chat](https://vercel.com/ufoo68s-projects/v0-cookie-design-chat)**
-
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.dev/chat/projects/e7Yp72tDy1h](https://v0.dev/chat/projects/e7Yp72tDy1h)**
-
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
