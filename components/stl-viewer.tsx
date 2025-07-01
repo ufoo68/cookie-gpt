@@ -11,7 +11,7 @@ interface STLViewerProps {
   stlUrl?: string
 }
 
-export function StlViewer({ stlContent, stlUrl }: STLViewerProps) {
+export default function StlViewer({ stlContent, stlUrl }: STLViewerProps) {
   const [show3DViewer, setShow3DViewer] = useState(true)
   const [viewerError, setViewerError] = useState(false)
   const [useReactStlViewer, setUseReactStlViewer] = useState(true)

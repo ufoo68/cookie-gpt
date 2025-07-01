@@ -10,7 +10,7 @@ interface SVGViewerProps {
   onDownload?: () => void
 }
 
-export function SvgViewer({ svgContent, onDownload }: SVGViewerProps) {
+export default function SvgViewer({ svgContent, onDownload }: SVGViewerProps) {
   const [showPreview, setShowPreview] = useState(true)
 
   const handleDownload = () => {
