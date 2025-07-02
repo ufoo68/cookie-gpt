@@ -42,15 +42,7 @@ type Message = {
 type Stage = "chat" | "svg_generated" | "stl_generated" | "completed"
 
 export default function Cookie3DChat() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      type: "assistant",
-      content:
-        "こんにちは！🍪 どんなクッキーを作りたいですか？形や模様、テーマなど、自由に教えてください。AIがあなたの理想のクッキーデザインを提案します！",
-      timestamp: new Date(),
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [stage, setStage] = useState<Stage>("chat")
@@ -67,6 +59,16 @@ export default function Cookie3DChat() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
+
+  useEffect(() => {
+    setMessages([{
+      id: "1",
+      type: "assistant",
+      content:
+        "こんにちは！🍪 どんなクッキーを作りたいですか？形や模様、テーマなど、自由に教えてください。AIがあなたの理想のクッキーデザインを提案します！",
+      timestamp: new Date(),
+    }]);
+  }, []);
 
   useEffect(() => {
     scrollToBottom()
