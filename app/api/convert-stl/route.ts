@@ -4,6 +4,8 @@ import { serialize } from "@jscad/stl-serializer";
 import * as modeling from "@jscad/modeling";
 
 const COOKIE_SIZE = 50; // クッキー型のサイズ
+const COOKIE_HEIGHT = 15; // クッキー型の高さ
+const COOKIE_THICKNESS = 2; // クッキー型の厚み
 
 const extrudeLinear = modeling.extrusions.extrudeLinear;
 const offset = modeling.expansions.offset;
@@ -49,10 +51,10 @@ export async function POST(request: NextRequest) {
           // スケーリング後の形状を押し出し
           return subtract(
             union(
-              extrudeLinear({ height: 15 }, offset({ delta: 2 }, scaledShape)),
-              extrudeLinear({ height: 2 }, offset({ delta: 4 }, scaledShape))
+              extrudeLinear({ height: COOKIE_HEIGHT }, offset({ delta: COOKIE_THICKNESS }, scaledShape)),
+              extrudeLinear({ height: COOKIE_THICKNESS }, offset({ delta: COOKIE_THICKNESS * 2 }, scaledShape))
             ),
-            extrudeLinear({ height: 15 }, scaledShape));
+            extrudeLinear({ height: COOKIE_HEIGHT }, scaledShape));
         });
     if (extruded.length === 0) {
       return NextResponse.json(
