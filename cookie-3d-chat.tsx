@@ -360,24 +360,29 @@ export default function Cookie3DChat() {
         <Cookie className="h-6 w-6" />
         <h1 className="text-lg font-semibold">cookieGPT</h1>
       </div>
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right" className="p-0 w-80">
-          <SheetHeader className="p-4 border-b border-amber-200 bg-gradient-to-b from-amber-50 to-orange-50">
-            <SheetTitle className="flex items-center gap-2 text-amber-800">
-              <Cookie className="h-5 w-5" />
-              cookieGPT
-            </SheetTitle>
-          </SheetHeader>
-          <div className="bg-gradient-to-b from-amber-50 to-orange-50 h-full">
-            <Sidebar />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={resetProcess}>
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="p-0 w-80">
+            <SheetHeader className="p-4 border-b border-amber-200 bg-gradient-to-b from-amber-50 to-orange-50">
+              <SheetTitle className="flex items-center gap-2 text-amber-800">
+                <Cookie className="h-5 w-5" />
+                cookieGPT
+              </SheetTitle>
+            </SheetHeader>
+            <div className="bg-gradient-to-b from-amber-50 to-orange-50 h-full">
+              <Sidebar />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
     </div>
   )
 
