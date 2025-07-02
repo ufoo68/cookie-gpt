@@ -287,7 +287,7 @@ export default function Cookie3DChat() {
       <div className="p-4 border-b border-amber-200 flex-shrink-0">
         <div className="flex items-center gap-2 mb-4">
           <Cookie className="h-6 w-6 text-amber-600" />
-          <h2 className="text-lg font-semibold text-amber-800">クッキー3Dチャット</h2>
+          <h2 className="text-lg font-semibold text-amber-800">cookieGPT</h2>
         </div>
 
         <div className="space-y-2">
@@ -358,7 +358,7 @@ export default function Cookie3DChat() {
     <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 flex items-center justify-between flex-shrink-0">
       <div className="flex items-center gap-2">
         <Cookie className="h-6 w-6" />
-        <h1 className="text-lg font-semibold">クッキー3Dチャット</h1>
+        <h1 className="text-lg font-semibold">cookieGPT</h1>
       </div>
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetTrigger asChild>
@@ -370,7 +370,7 @@ export default function Cookie3DChat() {
           <SheetHeader className="p-4 border-b border-amber-200 bg-gradient-to-b from-amber-50 to-orange-50">
             <SheetTitle className="flex items-center gap-2 text-amber-800">
               <Cookie className="h-5 w-5" />
-              クッキー3Dチャット
+              cookieGPT
             </SheetTitle>
           </SheetHeader>
           <div className="bg-gradient-to-b from-amber-50 to-orange-50 h-full">
@@ -392,7 +392,7 @@ export default function Cookie3DChat() {
           <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 flex-shrink-0">
             <div className="flex items-center gap-2">
               <Cookie className="h-6 w-6" />
-              <h1 className="text-xl font-semibold">クッキー3Dチャット</h1>
+              <h1 className="text-xl font-semibold">cookieGPT</h1>
               <Badge variant="secondary" className="ml-auto bg-white/20 text-white">
                 {stage === "chat" && "デザイン提案中"}
                 {stage === "svg_generated" && "デザイン確認中"}

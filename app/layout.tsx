@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "cookieGPT - AI Cookie Cutter Generator",
-  description: "画像からオリジナルクッキー型を作成するAIアプリ。GPT-4oで画像を分析し、SVGとSTLファイルを生成します。",
+  description: "オリジナルクッキー型を作成するAIアプリ。GPT-4oで2Dと3Dデータを作成します。",
   keywords: ["クッキー型", "AI", "3Dプリント", "SVG", "STL", "cookieGPT"],
   authors: [{ name: "cookieGPT Team" }],
   creator: "cookieGPT",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://cookiegpt.vercel.app"),
   openGraph: {
     title: "cookieGPT - AI Cookie Cutter Generator",
-    description: "画像からオリジナルクッキー型を作成するAIアプリ",
+    description: "オリジナルクッキー型を作成するAIアプリ",
     url: "https://cookiegpt.vercel.app",
     siteName: "cookieGPT",
     images: [
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "cookieGPT - AI Cookie Cutter Generator",
-    description: "画像からオリジナルクッキー型を作成するAIアプリ",
+    description: "オリジナルクッキー型を作成するAIアプリ",
     images: ["/og-image.png"],
   },
   robots: {

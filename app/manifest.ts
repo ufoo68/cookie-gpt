@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "cookieGPT - AI Cookie Cutter Generator",
     short_name: "cookieGPT",
-    description: "画像からオリジナルクッキー型を作成するAIアプリ",
+    description: "オリジナルクッキー型を作成するAIアプリ",
     start_url: "/",
     display: "standalone",
     background_color: "#FEF3C7",
@@ -49,7 +49,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "新しいクッキー型を作成",
         short_name: "新規作成",
-        description: "画像をアップロードして新しいクッキー型を作成",
+        description: "新しいクッキー型を作成",
         url: "/",
         icons: [
           {
