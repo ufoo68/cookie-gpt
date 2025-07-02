@@ -43,7 +43,7 @@ export function SvgViewer({ svgContent, onDownload }: SVGViewerProps) {
         {showPreview && (
           <div className="bg-white rounded-lg p-4 border-2 border-blue-100">
             <div
-              className="w-full h-64 flex items-center justify-center"
+              className="w-full h-64 flex items-center justify-center overflow-hidden [&_svg]:max-w-full [&_svg]:max-h-full [&_svg]:h-auto [&_svg]:w-auto"
               dangerouslySetInnerHTML={{ __html: svgContent }}
             />
           </div>
