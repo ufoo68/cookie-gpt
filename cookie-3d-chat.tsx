@@ -18,13 +18,15 @@ import {
   ImageIcon,
   CuboidIcon as Cube,
   Check,
+  Droplet,
   RefreshCw,
-  Heart,
-  Star,
-  Smile,
   Coffee,
   Cake,
   Gift,
+  Circle,
+  BookA,
+  Square,
+  Triangle,
 } from "lucide-react"
 import { SvgViewer } from "@/components/svg-viewer"
 import { StlViewer } from "@/components/stl-viewer"
@@ -269,12 +271,10 @@ export default function Cookie3DChat() {
   }
 
   const suggestionExamples = [
-    { icon: Heart, text: "ハート型のクッキー", color: "text-pink-500" },
-    { icon: Star, text: "星型のクッキー", color: "text-yellow-500" },
-    { icon: Smile, text: "笑顔のクッキー", color: "text-blue-500" },
-    { icon: Coffee, text: "コーヒーカップ型", color: "text-amber-600" },
-    { icon: Cake, text: "ケーキ型のクッキー", color: "text-purple-500" },
-    { icon: Gift, text: "プレゼント型", color: "text-green-500" },
+    { icon: Circle, text: "丸型のクッキー", color: "text-pink-500" },
+    { icon: Square, text: "四角型のクッキー", color: "text-yellow-500" },
+    { icon: Triangle, text: "三角型のクッキー", color: "text-brown-500" },
+    { icon: BookA, text: "Hの形のクッキー", color: "text-blue-500" },
   ]
 
   const modificationExamples = [
