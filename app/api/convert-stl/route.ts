@@ -3,7 +3,7 @@ import { deserialize } from "@jscad/svg-deserializer";
 import { serialize } from "@jscad/stl-serializer";
 import * as modeling from "@jscad/modeling";
 
-const COOKIE_SIZE = 70; // クッキー型のサイズ(直径)を70mmに設定
+const COOKIE_SIZE = 50; // クッキー型のサイズ
 
 const extrudeLinear = modeling.extrusions.extrudeLinear;
 const offset = modeling.expansions.offset;
