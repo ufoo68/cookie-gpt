@@ -13,7 +13,7 @@
     "@jscad/modeling": "latest",
     "@jscad/stl-serializer": "latest",
     "@jscad/svg-deserializer": "latest",
-    "@openai/agents": "latest",
+    "@openai/agents": "^0.0.10",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",
@@ -68,7 +68,7 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "0.158.0",
     "vaul": "latest",
-    "zod": "latest"
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/node": "^22",

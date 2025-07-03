@@ -41,7 +41,7 @@ type Message = {
   timestamp: Date
 }
 
-type Stage = "chat" | "svg_generated" | "stl_generated" | "completed"
+type Stage = "chat" | "generated" | "completed"
 
 export default function Cookie3DChat() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -101,11 +101,9 @@ export default function Cookie3DChat() {
 
       const data = await response.json()
       setSvgContent(data.svgContent)
-      setStage("svg_generated")
-      addMessage(
-        "assistant",
-        "クッキーのデザインを生成しました！🎨 気に入ったら「承認」ボタンを押してください。修正したい場合は、具体的な変更内容を教えてください。",
-      )
+      setStlContent(data.stlContent)
+      addMessage("assistant", data.answer)
+      setStage("generated")
     } catch (error) {
       console.error("Error generating design:", error)
       addMessage("assistant", "デザインの生成中にエラーが発生しました。もう一度お試しください。")
@@ -119,25 +117,24 @@ export default function Cookie3DChat() {
     }
   }
 
-  const modifySvg = async (modifications: string) => {
+  const modifyCookieDesign = async (modifications: string) => {
     setIsModifying(true)
+    const prompt = `ユーザーのリクエストに基づいて修正して、3Dモデルを生成しなおしてください。\n\nSVGコード:\n${svgContent}\n\nSTLコード:${stlContent}\n\nユーザーのリクエスト:\n${modifications}`
     try {
-      const response = await fetch("/api/modify-svg", {
+      const response = await fetch("/api/cookie-cutter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          svgContent: svgContent,
-          userRequest: modifications,
-        }),
+        body: JSON.stringify({ prompt }),
       })
 
       if (!response.ok) {
-        throw new Error("SVG修正に失敗しました")
+        throw new Error("修正に失敗しました")
       }
 
       const data = await response.json()
       setSvgContent(data.svgContent)
-      addMessage("assistant", "デザインを修正しました！✨ いかがでしょうか？")
+      setStlContent(data.stlContent)
+      addMessage("assistant", data.answer)
     } catch (error) {
       console.error("Error modifying SVG:", error)
       addMessage("assistant", "デザインの修正中にエラーが発生しました。")
@@ -151,39 +148,6 @@ export default function Cookie3DChat() {
     }
   }
 
-  const approveSvg = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch("/api/convert-stl", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ svgContent }),
-      })
-
-      if (!response.ok) {
-        throw new Error("STL変換に失敗しました")
-      }
-
-      const data = await response.json()
-      setStlContent(data.stlContent)
-      setStage("stl_generated")
-      addMessage(
-        "assistant",
-        "🎉 3Dモデル（STLファイル）の生成が完了しました！クッキー型の作成が完了です。STLファイルをダウンロードして3Dプリンターで印刷してください。素敵なクッキー作りを楽しんでくださいね！",
-      )
-    } catch (error) {
-      console.error("Error converting to STL:", error)
-      addMessage("assistant", "3Dモデルの生成中にエラーが発生しました。")
-      toast({
-        title: "エラー",
-        description: "3Dモデルの生成に失敗しました",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return
 
@@ -193,8 +157,8 @@ export default function Cookie3DChat() {
 
     if (stage === "chat") {
       await generateCookieDesign(userMessage)
-    } else if (stage === "svg_generated" && userMessage) {
-      await modifySvg(userMessage)
+    } else if (stage === "generated" && userMessage) {
+      await modifyCookieDesign(userMessage)
     }
   }
 
@@ -217,31 +181,12 @@ export default function Cookie3DChat() {
         // SVGファイルの場合
         const svgText = await file.text()
         setSvgContent(svgText)
-        setStage("svg_generated")
         addMessage("assistant", "SVGファイルをアップロードしました！デザインを確認できます。🎨")
       } else if (fileName.endsWith(".stl")) {
         // STLファイルの場合
         const stlText = await file.text()
         setStlContent(stlText)
-        setStage("stl_generated")
         addMessage("assistant", "STLファイルをアップロードしました！3Dプレビューで確認できます。🎯")
-      } else if (fileType.includes("image")) {
-        // 画像の場合
-        const formData = new FormData()
-        formData.append("image", file)
-
-        setIsLoading(true)
-        const response = await fetch("/api/convert-svg", {
-          method: "POST",
-          body: formData,
-        })
-
-        if (!response.ok) throw new Error("ファイル処理に失敗しました")
-
-        const data = await response.json()
-        setSvgContent(data.svgContent)
-        setStage("svg_generated")
-        addMessage("assistant", "アップロードされた画像からクッキーデザインを生成しました！🎨")
       }
     } catch (error) {
       console.error("Error uploading file:", error)
@@ -295,13 +240,9 @@ export default function Cookie3DChat() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div
-              className={`w-3 h-3 rounded-full ${stage === "chat" ? "bg-blue-500" : stage === "svg_generated" ? "bg-green-500" : "bg-gray-300"}`}
+              className={`w-3 h-3 rounded-full ${stage === "chat" ? "bg-blue-500" : stage === "generated" ? "bg-green-500" : "bg-gray-300"}`}
             />
             <span className="text-sm text-gray-600">デザイン提案</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${stage === "stl_generated" ? "bg-green-500" : "bg-gray-300"}`} />
-            <span className="text-sm text-gray-600">3Dモデル生成・完成</span>
           </div>
         </div>
       </div>
@@ -327,7 +268,7 @@ export default function Cookie3DChat() {
           </div>
         )}
 
-        {stage === "svg_generated" && (
+        {stage === "generated" && (
           <div className="p-4">
             <h3 className="font-medium text-amber-800 mb-3">🔧 修正例</h3>
             <div className="space-y-2">
@@ -402,8 +343,8 @@ export default function Cookie3DChat() {
               <h1 className="text-xl font-semibold">cookieGPT</h1>
               <Badge variant="secondary" className="ml-auto bg-white/20 text-white">
                 {stage === "chat" && "デザイン提案中"}
-                {stage === "svg_generated" && "デザイン確認中"}
-                {stage === "stl_generated" && "完成"}
+                {stage === "generated" && "デザイン確認中"}
+                {stage === "completed" && "完成"}
               </Badge>
             </div>
           </div>
@@ -436,16 +377,6 @@ export default function Cookie3DChat() {
                     </CardHeader>
                     <CardContent>
                       <SvgViewer svgContent={svgContent} onDownload={() => {}} />
-                      <div className="mt-4 flex gap-2">
-                        <Button onClick={approveSvg} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
-                          {isLoading ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          ) : (
-                            <Check className="h-4 w-4 mr-2" />
-                          )}
-                          承認して3Dモデル生成
-                        </Button>
-                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -483,19 +414,19 @@ export default function Cookie3DChat() {
                       placeholder={
                         stage === "chat"
                           ? "どんなクッキーを作りたいですか？"
-                          : stage === "svg_generated"
+                          : stage === "generated"
                             ? "デザインの修正内容を入力..."
-                            : "新しいクッキーを作るには「新しいクッキーを作る」ボタンを押してください"
+                            : ""
                       }
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      disabled={isLoading || isModifying || stage === "stl_generated"}
+                      disabled={isLoading || isModifying}
                     />
                   </div>
                   <Button
                     onClick={handleSendMessage}
-                    disabled={!inputValue.trim() || isLoading || isModifying || stage === "stl_generated"}
+                    disabled={!inputValue.trim() || isLoading || isModifying}
                   >
                     {isLoading || isModifying ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -506,7 +437,7 @@ export default function Cookie3DChat() {
                   <Button
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isLoading || stage === "stl_generated"}
+                    disabled={isLoading}
                   >
                     <Upload className="h-4 w-4" />
                   </Button>
